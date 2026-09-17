@@ -1,0 +1,36 @@
+Vancouver ? Average Rent by Bedroom Type by Zone
+October 2025 Row / Apartment
+,Studio,,1 Bedroom,,2 Bedroom,,3 Bedroom +,,Total,,
+West End/Stanley Park,"1,684",b ,"1,830",a ,"2,818",b ,**,,"1,914",b ,
+English Bay,"1,746",b ,"1,950",a ,"2,929",b ,**,,"2,020",a ,
+Downtown,"1,839",b ,"2,112",a ,"3,258",a ,"5,081",b ,"2,198",a ,
+South Granville/Oak,"1,525",a ,"1,863",a ,"2,506",b ,**,,"1,929",a ,
+Kitsilano/Point Grey,"1,679",b ,"1,915",a ,"2,651",a ,"3,733",b ,"2,051",a ,
+Westside/Kerrisdale,"1,956",b ,"1,905",a ,"2,955",a ,"4,453",b ,"2,385",b ,
+Marpole,"1,435",b ,"1,494",b ,"1,895",b ,**,,"1,540",b ,
+Mount Pleasant/Renfrew Heights,"1,798",a ,"1,704",a ,"2,512",b ,"3,360",b ,"1,903",a ,
+East Hastings,"1,689",a ,"1,692",a ,"2,323",b ,"2,608",b ,"1,827",a ,
+Southeast Vancouver,"1,366",c ,"1,714",a ,"2,359",a ,"2,475",b ,"1,968",a ,
+University Endowment Lands,"1,883",b ,"2,469",a ,"3,281",a ,"3,660",c ,"2,805",a ,
+Central Park/Metrotown,"1,561",b ,"1,813",b ,"2,325",c ,"2,586",d ,"1,958",b ,
+Southeast Burnaby,"1,429",d ,"1,564",b ,"1,824",b ,**,,"1,641",b ,
+North Burnaby,"1,292",b ,"1,710",a ,"2,110",a ,"2,345",b ,"1,847",a ,
+New Westminster,"1,531",a ,"1,645",a ,"2,134",a ,"2,733",b ,"1,794",a ,
+North Vancouver CY,"1,681",a ,"1,918",a ,"2,444",a ,"3,809",b ,"2,127",a ,
+North Vancouver DM,**,,"2,350",a ,"2,733",b ,"2,856",b ,"2,683",b ,
+West Vancouver,"1,914",b ,"2,153",b ,"3,252",b ,"4,762",d ,"2,577",b ,
+Richmond,"1,547",b ,"1,676",a ,"2,046",a ,"2,500",b ,"1,887",a ,
+Delta,"1,235",b ,"1,550",b ,"1,787",a ,"2,950",c ,"1,676",a ,
+Surrey,"1,606",a ,"1,602",a ,"1,872",a ,"1,956",b ,"1,728",a ,
+White Rock,"1,227",a ,"1,435",a ,"1,813",b ,"2,646",b ,"1,547",b ,
+Langley City and Langley DM,"1,354",b ,"1,765",a ,"2,203",a ,"2,216",b ,"2,007",a ,
+Tri-Cities,"1,640",b ,"1,708",a ,"2,175",b ,"2,627",b ,"1,936",b ,
+Maple Ridge/Pitt Meadows,980,b ,"1,426",a ,"1,653",b ,"2,026",c ,"1,514",a ,
+Vancouver,"1,667",a ,"1,807",a ,"2,364",a ,"2,820",a ,"1,970",a ,
+
+Notes
+"The following letter codes are used to indicate the reliability of the estimates: a ? Excellent, b ? Very good, c ? Good, d ? Poor (Use with Caution))"
+** ? Data suppressed to protect confidentiality or data not statistically reliable
+++ ? Change in rent is not statistically significant. This means that the change in rent is not statistically different than zero (0). (Applies only to % Change of Average Rent Tables).
+"CMA, CA and CSD definitions are based on 2021 Census Geography Definitions"
+Source,CMHC Rental Market Survey

@@ -1,0 +1,3 @@
+StatsCan (groceries) → live API client, scheduled refresh
+CMHC (rent) → CSV import script (you download it periodically, script loads it into the DB)
+Transit fares → static table
