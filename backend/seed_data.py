@@ -25,16 +25,17 @@ for name in REGIONS:
     if not exists:
         db.add(Region(name=name, province="BC"))
 
-# NOTE: these fare numbers are placeholders for scaffolding purposes —
-# replace with the actual current TransLink fares before relying on them:
-# https://www.translink.ca/transit-fares
+# Real current TransLink fares, effective July 1, 2026 (the annual July 1
+# fare increase already applied). Source: translink.ca/transit-fares.
+# Note: these are Compass Card "stored value" fares, not cash fares —
+# stored value is the standard rate most riders actually pay.
 TRANSIT_FARES = [
-    {"zone_count": 1, "fare_type": "adult", "single_fare_cost": 3.15,
-     "monthly_pass_cost": 108.00, "effective_date": "2026-01-01"},
-    {"zone_count": 2, "fare_type": "adult", "single_fare_cost": 4.55,
-     "monthly_pass_cost": 145.00, "effective_date": "2026-01-01"},
-    {"zone_count": 3, "fare_type": "adult", "single_fare_cost": 6.20,
-     "monthly_pass_cost": 197.00, "effective_date": "2026-01-01"},
+    {"zone_count": 1, "fare_type": "adult", "single_fare_cost": 2.85,
+     "monthly_pass_cost": 117.20, "effective_date": "2026-07-01"},
+    {"zone_count": 2, "fare_type": "adult", "single_fare_cost": 4.20,
+     "monthly_pass_cost": 156.70, "effective_date": "2026-07-01"},
+    {"zone_count": 3, "fare_type": "adult", "single_fare_cost": 5.40,
+     "monthly_pass_cost": 211.65, "effective_date": "2026-07-01"},
 ]
 
 for fare in TRANSIT_FARES:
@@ -42,7 +43,7 @@ for fare in TRANSIT_FARES:
         TransitFare.zone_count == fare["zone_count"],
         TransitFare.fare_type == fare["fare_type"],
         TransitFare.effective_date == fare["effective_date"],
-    ).first()
+        ).first()
     if not exists:
         db.add(TransitFare(**fare))
 

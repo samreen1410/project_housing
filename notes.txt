@@ -1,3 +1,12 @@
 StatsCan (groceries) → live API client, scheduled refresh
 CMHC (rent) → CSV import script (you download it periodically, script loads it into the DB)
 Transit fares → static table
+
+
+concession rate ($66.96) in transit missing for now, focussing only on adult rates
+To activate venv: cd /Users/samreenkaur/Documents/GitHub/project_housing/backend
+                  source venv/bin/activate
+
+uvicorn app.main:app --reload
+http://127.0.0.1:8000/docs
+
