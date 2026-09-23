@@ -32,19 +32,19 @@ class AffordabilityResult:
 
 
 def calculate_affordability(
-    monthly_income: float,
-    avg_rent: float,
-    monthly_groceries_estimate: float,
-    monthly_transit_cost: float,
-    monthly_extra_expenses: float = 0.0,
-    current_savings: float = 0.0,
-    savings_goal: float | None = None,
+        monthly_income: float,
+        avg_rent: float,
+        monthly_groceries_estimate: float,
+        monthly_transit_cost: float,
+        monthly_extra_expenses: float = 0.0,
+        current_savings: float = 0.0,
+        savings_goal: float | None = None,
 ) -> AffordabilityResult:
     notes = []
 
     total_expenses = (
-        avg_rent + monthly_groceries_estimate + monthly_transit_cost
-        + monthly_extra_expenses
+            avg_rent + monthly_groceries_estimate + monthly_transit_cost
+            + monthly_extra_expenses
     )
     surplus = monthly_income - total_expenses
 
@@ -86,13 +86,21 @@ def calculate_affordability(
     )
 
 
-def estimate_monthly_groceries(daily_food_items_avg: dict[str, float]) -> float:
+def estimate_monthly_groceries(item_prices: dict[str, float]) -> float:
     """
-    Very rough v1: sums a basket of per-unit grocery prices and scales to a
-    monthly estimate. Replace with a proper weighted basket (matching
-    StatsCan's CPI basket weights) once you have more items cached —
-    right now this is a placeholder pending real cached grocery_data rows.
+    Turns a basket of cached StatsCan item prices into a rough monthly
+    estimate for one person.
+
+    IMPORTANT ASSUMPTION, worth revisiting later: the basket (milk, bread,
+    eggs, meat, produce, pantry staples — see GROCERY_ITEM_VECTORS) is
+    priced per package/kg, not per day, so there's no exact "how often do
+    you buy this" data here. This treats the summed basket as roughly two
+    weeks' worth of staples for one person and doubles it for a monthly
+    figure. That's a simplification, not a precise model — a more accurate
+    version later would weight each item by realistic purchase frequency
+    (e.g. milk bought weekly, rice bought monthly).
     """
-    # Rough placeholder multiplier — refine once real data is flowing.
-    basket_total = sum(daily_food_items_avg.values())
-    return basket_total * 4.3  # ~4.3 weeks/month
+    if not item_prices:
+        return 0.0
+    basket_total = sum(item_prices.values())
+    return round(basket_total * 2, 2)
