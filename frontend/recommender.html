@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neighbourhood Recommender — Vancouver Housing Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/theme.css">
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<nav class="site-nav" id="site-nav"></nav>
+
+<div class="tear-strip"></div>
+<div class="sheet">
+  <div class="fastener"></div>
+  <header class="report-head">
+    <h1>Neighbourhood Recommender</h1>
+    <span class="report-no">No. 0004</span>
+  </header>
+
+  <p style="line-height:1.6; margin-top:0;">
+    Tell us your budget and situation once — we'll rank every Metro
+    Vancouver city we have data for, best fit first.
+  </p>
+
+  <form id="rec-form">
+    <div class="field-block">
+      <div class="field">
+        <label for="income">Monthly income ($)</label>
+        <input type="number" id="income" min="0" step="1" required placeholder="4000">
+      </div>
+      <div class="field">
+        <label for="bedroom">Unit type</label>
+        <select id="bedroom" required>
+          <option value="Studio">Studio</option>
+          <option value="1 Bedroom" selected>1 Bedroom</option>
+          <option value="2 Bedroom">2 Bedroom</option>
+          <option value="3 Bedroom +">3 Bedroom +</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="extra">Other monthly expenses ($)</label>
+        <input type="number" id="extra" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="transport-mode">How do you get around?</label>
+        <select id="transport-mode">
+          <option value="transit" selected>Transit</option>
+          <option value="car">Car</option>
+          <option value="none">Walk / bike / neither</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="custom-groceries">Your monthly groceries ($, optional)</label>
+        <input type="number" id="custom-groceries" min="0" step="1" placeholder="use estimate">
+      </div>
+      <div class="field">
+        <label for="custom-transport">Your transportation cost ($, optional)</label>
+        <input type="number" id="custom-transport" min="0" step="1" placeholder="use average">
+      </div>
+    </div>
+
+    <button type="submit" class="primary-btn">Find my matches</button>
+    <p class="status-line" id="status"></p>
+  </form>
+
+  <section class="ledger hidden" id="results"></section>
+
+  <footer class="report-foot">
+    Ranked by monthly surplus — highest surplus (most breathing room) first.
+  </footer>
+</div>
+
+<script src="shared/background.js"></script>
+<script src="shared/api.js"></script>
+<script src="shared/state.js"></script>
+<script src="shared/nav.js"></script>
+<script>
+  const form = document.getElementById("rec-form");
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "";
+    results.classList.add("hidden");
+    results.innerHTML = "";
+
+    const payload = {
+      monthly_income: Number(document.getElementById("income").value),
+      bedroom_type: document.getElementById("bedroom").value,
+      monthly_extra_expenses: Number(document.getElementById("extra").value || 0),
+      transportation_mode: document.getElementById("transport-mode").value,
+    };
+    const customGroceries = document.getElementById("custom-groceries").value;
+    if (customGroceries) payload.custom_groceries = Number(customGroceries);
+    const customTransport = document.getElementById("custom-transport").value;
+    if (customTransport) payload.custom_transportation_cost = Number(customTransport);
+
+    try {
+      const res = await fetch(`${API_BASE}/recommend/matches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const matches = await res.json();
+
+      if (!res.ok) {
+        status.textContent = matches.detail || "The backend rejected this request.";
+        return;
+      }
+      if (!matches.length) {
+        status.textContent = "No cities have rent data for that unit type yet.";
+        return;
+      }
+
+      renderMatches(matches);
+    } catch (err) {
+      status.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+    }
+  });
+
+  function renderMatches(matches) {
+    results.innerHTML = matches.map((m, i) => {
+      const badge = m.is_currently_affordable
+        ? `<span style="color: var(--stamp-green); font-weight:700;">✓ affordable</span>`
+        : `<span style="color: var(--stamp-red); font-weight:700;">over budget</span>`;
+      const rank = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
+
+      return `
+        <div class="ledger-row" style="flex-direction:column; align-items:stretch; gap:4px; cursor:pointer;" data-region-id="${m.region_id}" data-region-name="${m.region_name}">
+          <div style="display:flex; justify-content:space-between;">
+            <span><strong>${rank}${m.region_name}</strong></span>
+            <span class="amount">${money(m.monthly_surplus)} surplus</span>
+          </div>
+          <div style="font-size:0.78rem; color:var(--ink-soft); display:flex; justify-content:space-between;">
+            <span>Rent ${money(m.estimated_rent)} · Groceries ${money(m.estimated_groceries)} · Transport ${money(m.estimated_transportation)}</span>
+            ${badge}
+          </div>
+        </div>`;
+    }).join("");
+
+    results.classList.remove("hidden");
+
+    results.querySelectorAll("[data-region-id]").forEach(row => {
+      row.addEventListener("click", () => {
+        setSelectedRegion(row.dataset.regionId, row.dataset.regionName);
+        window.location.href = "calculator.html";
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -7,7 +7,7 @@ Run this once after setting up the database to populate:
 Usage: python seed_data.py
 """
 from app.database import SessionLocal, Base, engine
-from app.models import Region, TransitFare
+from app.models import Region, TransitFare, CarCost
 
 Base.metadata.create_all(bind=engine)
 db = SessionLocal()
@@ -46,6 +46,22 @@ for fare in TRANSIT_FARES:
         ).first()
     if not exists:
         db.add(TransitFare(**fare))
+
+# Average monthly cost of car ownership in BC (insurance + gas +
+# maintenance, blended) — from the Canada Car Ownership Index 2026,
+# which reported $4,432/year for BC. This does NOT include a car
+# payment/loan, since that varies hugely by person; someone financing a
+# vehicle should override this with their own number in the calculator.
+CAR_COST = {
+    "monthly_cost": round(4432 / 12, 2),
+    "source_note": "Canada Car Ownership Index 2026 (BC annual avg, excl. loan payments)",
+    "effective_date": "2026-01-01",
+}
+exists = db.query(CarCost).filter(
+    CarCost.effective_date == CAR_COST["effective_date"]
+).first()
+if not exists:
+    db.add(CarCost(**CAR_COST))
 
 db.commit()
 db.close()

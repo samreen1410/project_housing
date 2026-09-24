@@ -1,0 +1,428 @@
+/* Shared "greenbar ledger" theme — used by every page in this site so the
+   look stays consistent as we add the Rent Explorer and Recommender. */
+
+:root {
+  --paper: #fbfbf7;
+  --bar-green: #e3ecdc;
+  --bar-green-soft: #eef3e9;
+  --ink: #1c2a17;
+  --ink-soft: #4a5a43;
+  --rule: #a9bf9c;
+  --rule-faint: #d3e0ca;
+  --stamp-green: #2f6b34;
+  --stamp-red: #a3372b;
+  --hole: #cdd8c4;
+  --focus: #2f6b34;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: #f1efe8;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 96px;
+  position: relative;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ---------- Site navigation (ledger binder tabs) ---------- */
+
+.site-nav {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  margin-top: 32px;
+}
+
+.site-nav a {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--ink-soft);
+  background: #dde3d4;
+  padding: 10px 20px 8px;
+  border: 1px solid var(--rule);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  margin-right: 4px;
+  position: relative;
+  top: 1px;
+  box-shadow: 0 -1px 2px rgba(28, 42, 23, 0.06);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.site-nav a:nth-child(2) { background: #d6e0c9; }
+.site-nav a:nth-child(3) { background: #cfdac0; }
+.site-nav a:nth-child(4) { background: #c8d4b8; }
+
+.site-nav a:hover {
+  transform: translateY(-2px);
+}
+
+.site-nav a.active {
+  color: var(--ink);
+  background: var(--paper);
+  border-bottom: 1px solid var(--paper);
+  font-weight: 700;
+  transform: none;
+}
+
+/* ---------- Report sheet shell ---------- */
+
+.sheet {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  background: var(--paper);
+  box-shadow: 0 2px 3px rgba(28, 42, 23, 0.08), 0 12px 28px rgba(28, 42, 23, 0.12);
+  padding: 40px 56px 56px;
+}
+
+.sheet::before, .sheet::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  background-image: radial-gradient(circle, var(--hole) 3.5px, transparent 3.6px);
+  background-size: 100% 22px;
+  background-position: center top;
+  opacity: 0.9;
+}
+.sheet::before { left: 0; border-right: 1px dashed var(--rule-faint); }
+.sheet::after { right: 0; border-left: 1px dashed var(--rule-faint); }
+
+header.report-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 14px;
+  margin-bottom: 28px;
+}
+
+header.report-head h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+header.report-head .report-no {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Form fields (shared across Calculator/Explorer/Recommender) ---------- */
+
+.field-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+  margin-bottom: 30px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 0.78rem; color: var(--ink-soft); }
+
+.field select, .field input {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.95rem;
+  padding: 8px 4px;
+  border: none;
+  border-bottom: 1.5px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+}
+
+.field select:focus, .field input:focus {
+  outline: none;
+  border-bottom: 1.5px solid var(--focus);
+}
+
+.primary-btn {
+  display: block;
+  width: 100%;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  margin-bottom: 4px;
+}
+.primary-btn:hover { background: #14200f; }
+.primary-btn:active { transform: translateY(1px); }
+
+.status-line {
+  font-size: 0.82rem;
+  color: var(--stamp-red);
+  min-height: 1.2em;
+  margin: 10px 0 0;
+}
+
+/* ---------- Ledger row list (used by Calculator + Explorer) ---------- */
+
+.ledger { margin-top: 34px; }
+.ledger.hidden { display: none; }
+
+.ledger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 11px 10px;
+  font-size: 0.95rem;
+}
+.ledger-row:nth-child(odd) { background: var(--bar-green-soft); }
+.ledger-row:nth-child(even) { background: transparent; }
+
+.ledger-row .amount {
+  font-family: 'Space Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-row.total {
+  border-top: 1.5px solid var(--ink);
+  margin-top: 6px;
+  font-weight: 600;
+  background: var(--bar-green);
+}
+
+.ledger-row.surplus .amount { color: var(--stamp-green); }
+.ledger-row.surplus.negative .amount { color: var(--stamp-red); }
+
+.notes {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--rule);
+  background: var(--bar-green-soft);
+}
+
+/* ---------- Stamp verdict ---------- */
+
+.verdict-area {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  min-height: 90px;
+}
+
+.stamp {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  padding: 14px 28px;
+  border: 4px solid currentColor;
+  border-radius: 6px;
+  transform: rotate(-6deg) scale(0);
+  opacity: 0;
+  text-transform: uppercase;
+}
+
+.stamp.affordable { color: var(--stamp-green); }
+.stamp.over { color: var(--stamp-red); }
+
+@keyframes stampDown {
+  0%   { transform: rotate(-6deg) scale(2.2); opacity: 0; }
+  60%  { transform: rotate(-6deg) scale(0.9); opacity: 1; }
+  80%  { transform: rotate(-6deg) scale(1.05); }
+  100% { transform: rotate(-6deg) scale(1); opacity: 1; }
+}
+.stamp.animate { animation: stampDown 0.5s ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp.animate { animation: none; transform: rotate(-6deg) scale(1); opacity: 1; }
+}
+
+footer.report-foot {
+  margin-top: 40px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--rule-faint);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ---------- Torn tear-off strip, sits directly above the sheet ---------- */
+
+.tear-strip {
+  width: 100%;
+  max-width: 760px;
+  height: 14px;
+  margin-top: 28px;
+  background:
+    linear-gradient(-45deg, transparent 8px, var(--paper) 0) 0 0/16px 16px repeat-x,
+    linear-gradient(45deg, var(--paper) 8px, transparent 0) 0 0/16px 16px repeat-x;
+}
+
+/* ---------- Brass paper fastener, decorative ---------- */
+
+.fastener {
+  position: absolute;
+  top: 16px;
+  left: 22px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e0bd6c, #8a6a24 72%, #5e4816);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+/* ---------- Sheet "prints in" from the top on page load ---------- */
+
+@keyframes printIn {
+  0%   { transform: translateY(-30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.sheet {
+  animation: printIn 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+}
+
+/* ---------- Ticker tape (adding-machine-style scrolling strip) ---------- */
+
+.ticker {
+  width: 100%;
+  max-width: 760px;
+  overflow: hidden;
+  background: var(--ink);
+  border-radius: 4px;
+  margin-top: 18px;
+  padding: 9px 0;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: tickerScroll 22s linear infinite;
+}
+
+.ticker-track span {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--bar-green);
+  white-space: nowrap;
+  padding: 0 22px;
+  border-right: 1px solid rgba(227, 236, 220, 0.3);
+}
+
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
+
+/* ---------- Page-turn transition between pages ----------
+   Uses the browser's native cross-document view transition API.
+   This is a progressive enhancement: fully supported in current
+   Chrome/Edge, and simply ignored (normal instant navigation) in
+   browsers that don't support it yet — nothing breaks either way. */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: pageTearOut 0.35s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: printIn 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes pageTearOut {
+  to { transform: translateY(24px) rotate(0.6deg); opacity: 0; }
+}
+
+/* ---------- Live entry tape (real-time interaction on the calculator) ---------- */
+
+.live-tape {
+  margin-top: 26px;
+  background: #f3f1e9;
+  border: 1px solid var(--rule-faint);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tape-head {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  background: var(--bar-green);
+  padding: 6px 12px;
+  border-bottom: 1px dashed var(--rule);
+}
+
+.tape-lines {
+  max-height: 130px;
+  overflow-y: auto;
+  padding: 6px 12px;
+}
+
+.tape-lines div {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  padding: 3px 0;
+  animation: tapePrint 0.25s ease-out both;
+}
+
+.tape-lines .tape-total {
+  font-weight: 700;
+  color: var(--stamp-green);
+  border-top: 1px dashed var(--rule);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+@keyframes tapePrint {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tape-lines div { animation: none; }
+}
+
+.hidden { display: none !important; }
+
+.coming-soon {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-family: 'Space Mono', monospace;
+}
+
+@media (max-width: 520px) {
+  .sheet { padding: 32px 30px 44px; }
+  .field-block { grid-template-columns: 1fr; }
+}

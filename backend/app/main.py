@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
-from app.routers import regions, affordability, admin
+from app.routers import regions, affordability, admin, rent, recommender
 
 # Creates tables on startup if they don't exist yet. Fine for development;
 # once you have real data you care about, switch to Alembic migrations
@@ -27,6 +27,8 @@ app.add_middleware(
 app.include_router(regions.router)
 app.include_router(affordability.router)
 app.include_router(admin.router)
+app.include_router(rent.router)
+app.include_router(recommender.router)
 
 
 @app.get("/")

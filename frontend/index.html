@@ -1,400 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vancouver Affordability Report</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --paper: #fbfbf7;
-            --bar-green: #e3ecdc;
-            --bar-green-soft: #eef3e9;
-            --ink: #1c2a17;
-            --ink-soft: #4a5a43;
-            --rule: #a9bf9c;
-            --rule-faint: #d3e0ca;
-            --stamp-green: #2f6b34;
-            --stamp-red: #a3372b;
-            --hole: #cdd8c4;
-            --focus: #2f6b34;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            background: #e9e6dd;
-            font-family: 'IBM Plex Sans', sans-serif;
-            color: var(--ink);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 48px 16px 96px;
-        }
-
-        .sheet {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            background: var(--paper);
-            box-shadow: 0 2px 3px rgba(28, 42, 23, 0.08), 0 12px 28px rgba(28, 42, 23, 0.12);
-            padding: 40px 56px 56px;
-        }
-
-        /* tractor-feed perforation strips */
-        .sheet::before, .sheet::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 28px;
-            background-image: radial-gradient(circle, var(--hole) 3.5px, transparent 3.6px);
-            background-size: 100% 22px;
-            background-position: center top;
-            opacity: 0.9;
-        }
-        .sheet::before { left: 0; border-right: 1px dashed var(--rule-faint); }
-        .sheet::after { right: 0; border-left: 1px dashed var(--rule-faint); }
-
-        header.report-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 2px solid var(--ink);
-            padding-bottom: 14px;
-            margin-bottom: 28px;
-        }
-
-        header.report-head h1 {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            margin: 0;
-        }
-
-        header.report-head .report-no {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--ink-soft);
-        }
-
-        .field-block {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px 24px;
-            margin-bottom: 30px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .field label {
-            font-size: 0.78rem;
-            color: var(--ink-soft);
-        }
-
-        .field select,
-        .field input {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.95rem;
-            padding: 8px 4px;
-            border: none;
-            border-bottom: 1.5px solid var(--rule);
-            background: transparent;
-            color: var(--ink);
-        }
-
-        .field select:focus,
-        .field input:focus {
-            outline: none;
-            border-bottom: 1.5px solid var(--focus);
-        }
-
-        .calc-btn {
-            display: block;
-            width: 100%;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 13px;
-            background: var(--ink);
-            color: var(--paper);
-            border: none;
-            cursor: pointer;
-            letter-spacing: 0.01em;
-            margin-bottom: 4px;
-        }
-        .calc-btn:hover { background: #14200f; }
-        .calc-btn:active { transform: translateY(1px); }
-
-        .status-line {
-            font-size: 0.82rem;
-            color: var(--stamp-red);
-            min-height: 1.2em;
-            margin: 10px 0 0;
-        }
-
-        .ledger {
-            margin-top: 34px;
-            display: none;
-        }
-        .ledger.visible { display: block; }
-
-        .ledger-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            padding: 11px 10px;
-            font-size: 0.95rem;
-        }
-        .ledger-row:nth-child(odd) { background: var(--bar-green-soft); }
-        .ledger-row:nth-child(even) { background: transparent; }
-
-        .ledger-row .amount {
-            font-family: 'Space Mono', monospace;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .ledger-row.total {
-            border-top: 1.5px solid var(--ink);
-            margin-top: 6px;
-            font-weight: 600;
-            background: var(--bar-green);
-        }
-
-        .ledger-row.surplus .amount { color: var(--stamp-green); }
-        .ledger-row.surplus.negative .amount { color: var(--stamp-red); }
-
-        .notes {
-            font-size: 0.82rem;
-            color: var(--ink-soft);
-            margin-top: 14px;
-            padding: 10px 12px;
-            border-left: 3px solid var(--rule);
-            background: var(--bar-green-soft);
-        }
-
-        .verdict-area {
-            margin-top: 32px;
-            display: flex;
-            justify-content: center;
-            min-height: 90px;
-        }
-
-        .stamp {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            font-size: 1.4rem;
-            letter-spacing: 0.08em;
-            padding: 14px 28px;
-            border: 4px solid currentColor;
-            border-radius: 6px;
-            transform: rotate(-6deg) scale(0);
-            opacity: 0;
-            text-transform: uppercase;
-        }
-
-        .stamp.affordable { color: var(--stamp-green); }
-        .stamp.over { color: var(--stamp-red); }
-
-        @keyframes stampDown {
-            0%   { transform: rotate(-6deg) scale(2.2); opacity: 0; }
-            60%  { transform: rotate(-6deg) scale(0.9); opacity: 1; }
-            80%  { transform: rotate(-6deg) scale(1.05); }
-            100% { transform: rotate(-6deg) scale(1); opacity: 1; }
-        }
-
-        .stamp.animate { animation: stampDown 0.5s ease-out forwards; }
-
-        @media (prefers-reduced-motion: reduce) {
-            .stamp.animate { animation: none; transform: rotate(-6deg) scale(1); opacity: 1; }
-        }
-
-        footer.report-foot {
-            margin-top: 40px;
-            padding-top: 14px;
-            border-top: 1px dashed var(--rule-faint);
-            font-size: 0.72rem;
-            color: var(--ink-soft);
-            text-align: center;
-        }
-
-        @media (max-width: 520px) {
-            .sheet { padding: 32px 30px 44px; }
-            .field-block { grid-template-columns: 1fr; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metro Vancouver Housing Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 
+<canvas id="bg-canvas"></canvas>
+<nav class="site-nav" id="site-nav"></nav>
+
+<div class="tear-strip"></div>
 <div class="sheet">
-    <header class="report-head">
-        <h1>Metro Vancouver Affordability Report</h1>
-        <span class="report-no">No. 0001</span>
-    </header>
+  <div class="fastener"></div>
+  <header class="report-head">
+    <h1>Metro Vancouver Housing Tool</h1>
+    <span class="report-no">No. 0001</span>
+  </header>
 
-    <form id="calc-form">
-        <div class="field-block">
-            <div class="field">
-                <label for="region">City</label>
-                <select id="region" required></select>
-            </div>
-            <div class="field">
-                <label for="bedroom">Unit type</label>
-                <select id="bedroom" required>
-                    <option value="Studio">Studio</option>
-                    <option value="1 Bedroom" selected>1 Bedroom</option>
-                    <option value="2 Bedroom">2 Bedroom</option>
-                    <option value="3 Bedroom +">3 Bedroom +</option>
-                </select>
-            </div>
-            <div class="field">
-                <label for="income">Monthly income ($)</label>
-                <input type="number" id="income" min="0" step="1" required placeholder="4000">
-            </div>
-            <div class="field">
-                <label for="extra">Other monthly expenses ($)</label>
-                <input type="number" id="extra" min="0" step="1" value="0">
-            </div>
-            <div class="field">
-                <label for="savings">Current savings ($)</label>
-                <input type="number" id="savings" min="0" step="1" value="0">
-            </div>
-            <div class="field">
-                <label for="goal">Savings goal ($, optional)</label>
-                <input type="number" id="goal" min="0" step="1" placeholder="5000">
-            </div>
-        </div>
+  <p style="line-height: 1.6;">
+    Real rent, grocery, and transit data for Metro Vancouver, in one place.
+    Sourced from CMHC's Rental Market Survey, TransLink's fare schedule,
+    and StatsCan's retail price data.
+  </p>
 
-        <button type="submit" class="calc-btn">Calculate affordability</button>
-        <p class="status-line" id="status"></p>
-    </form>
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track">
+      <span>Loading city data…</span>
+    </div>
+  </div>
 
-    <section class="ledger" id="ledger">
-        <div class="ledger-row"><span>Rent</span><span class="amount" id="row-rent"></span></div>
-        <div class="ledger-row"><span>Groceries</span><span class="amount" id="row-groceries"></span></div>
-        <div class="ledger-row"><span>Transit</span><span class="amount" id="row-transit"></span></div>
-        <div class="ledger-row total"><span>Total expenses</span><span class="amount" id="row-total"></span></div>
-        <div class="ledger-row surplus" id="row-surplus-wrap"><span>Monthly surplus</span><span class="amount" id="row-surplus"></span></div>
-        <div class="ledger-row" id="row-goal-wrap" style="display:none;"><span>Months to savings goal</span><span class="amount" id="row-goal"></span></div>
-        <div class="notes" id="notes-block" style="display:none;"></div>
+  <div class="field-block" style="margin-top: 32px;">
+    <div class="field">
+      <label>Browse rent by city</label>
+      <a href="explorer.html" class="primary-btn" style="text-align:center; text-decoration:none; display:block;">Open Rent Explorer</a>
+    </div>
+    <div class="field">
+      <label>Check what you can afford</label>
+      <a href="calculator.html" class="primary-btn" style="text-align:center; text-decoration:none; display:block;">Open Calculator</a>
+    </div>
+  </div>
 
-        <div class="verdict-area">
-            <div class="stamp" id="stamp"></div>
-        </div>
-    </section>
-
-    <footer class="report-foot">
-        Data: CMHC Rental Market Survey · TransLink fare schedule · StatsCan (est.)
-    </footer>
+  <footer class="report-foot">
+    Data: CMHC Rental Market Survey · TransLink fare schedule · StatsCan average retail prices
+  </footer>
 </div>
 
+<script src="shared/background.js"></script>
+<script src="shared/api.js"></script>
+<script src="shared/nav.js"></script>
 <script>
-    const API_BASE = "http://127.0.0.1:8000"; // update if backend runs elsewhere
-
-    const regionSelect = document.getElementById("region");
-    const form = document.getElementById("calc-form");
-    const statusLine = document.getElementById("status");
-    const ledger = document.getElementById("ledger");
-    const stamp = document.getElementById("stamp");
-
-    async function loadRegions() {
-        try {
-            const res = await fetch(`${API_BASE}/regions/`);
-            if (!res.ok) throw new Error("Could not reach the regions endpoint");
-            const regions = await res.json();
-            regionSelect.innerHTML = regions
-                .map(r => `<option value="${r.id}">${r.name}</option>`)
-                .join("");
-        } catch (err) {
-            statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
-        }
+  async function loadTicker() {
+    const track = document.getElementById("ticker-track");
+    try {
+      const regions = await fetchRegions();
+      const names = regions.map(r => `<span>◆ ${r.name.toUpperCase()}</span>`);
+      // duplicate the list so the scroll loop is seamless
+      track.innerHTML = names.join("") + names.join("");
+    } catch (err) {
+      track.innerHTML = "<span>Backend offline — start uvicorn to load live city data</span>";
     }
-
-    function money(value) {
-        return "$" + Number(value).toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        statusLine.textContent = "";
-        stamp.classList.remove("animate");
-        stamp.style.opacity = 0;
-
-        const payload = {
-            region_id: Number(regionSelect.value),
-            bedroom_type: document.getElementById("bedroom").value,
-            monthly_income: Number(document.getElementById("income").value),
-            current_savings: Number(document.getElementById("savings").value || 0),
-            monthly_extra_expenses: Number(document.getElementById("extra").value || 0),
-        };
-        const goalVal = document.getElementById("goal").value;
-        if (goalVal) payload.savings_goal = Number(goalVal);
-
-        try {
-            const res = await fetch(`${API_BASE}/affordability/calculate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                statusLine.textContent = data.detail || "The backend rejected this request.";
-                ledger.classList.remove("visible");
-                return;
-            }
-
-            renderResult(data);
-        } catch (err) {
-            statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
-        }
-    });
-
-    function renderResult(data) {
-        document.getElementById("row-rent").textContent = money(data.estimated_rent);
-        document.getElementById("row-groceries").textContent = money(data.estimated_groceries);
-        document.getElementById("row-transit").textContent = money(data.estimated_transit);
-        document.getElementById("row-total").textContent = money(data.total_monthly_expenses);
-
-        const surplusRow = document.getElementById("row-surplus-wrap");
-        const surplusVal = document.getElementById("row-surplus");
-        surplusVal.textContent = money(data.monthly_surplus);
-        surplusRow.classList.toggle("negative", data.monthly_surplus < 0);
-
-        const goalWrap = document.getElementById("row-goal-wrap");
-        if (data.months_to_goal !== null && data.months_to_goal !== undefined) {
-            goalWrap.style.display = "flex";
-            document.getElementById("row-goal").textContent = data.months_to_goal + " mo.";
-        } else {
-            goalWrap.style.display = "none";
-        }
-
-        const notesBlock = document.getElementById("notes-block");
-        if (data.notes && data.notes.length) {
-            notesBlock.style.display = "block";
-            notesBlock.innerHTML = data.notes.map(n => `<div>${n}</div>`).join("");
-        } else {
-            notesBlock.style.display = "none";
-        }
-
-        stamp.textContent = data.is_currently_affordable ? "Affordable" : "Over budget";
-        stamp.className = "stamp " + (data.is_currently_affordable ? "affordable" : "over");
-
-        ledger.classList.add("visible");
-        // restart animation
-        void stamp.offsetWidth;
-        stamp.classList.add("animate");
-    }
-
-    loadRegions();
+  }
+  loadTicker();
 </script>
 
 </body>

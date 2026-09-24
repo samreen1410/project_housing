@@ -27,6 +27,26 @@ class RentDataOut(BaseModel):
         from_attributes = True
 
 
+class RecommendationRequest(BaseModel):
+    monthly_income: float
+    bedroom_type: str = "1 Bedroom"
+    monthly_extra_expenses: float = 0.0
+    custom_groceries: Optional[float] = None
+    transportation_mode: str = "transit"
+    custom_transportation_cost: Optional[float] = None
+
+
+class RecommendationMatch(BaseModel):
+    region_id: int
+    region_name: str
+    estimated_rent: float
+    estimated_groceries: float
+    estimated_transportation: float
+    total_monthly_expenses: float
+    monthly_surplus: float
+    is_currently_affordable: bool
+
+
 class AffordabilityRequest(BaseModel):
     region_id: int
     bedroom_type: str = "1 Bedroom"
@@ -35,14 +55,27 @@ class AffordabilityRequest(BaseModel):
     savings_goal: Optional[float] = None
     monthly_extra_expenses: float = 0.0  # phone, subscriptions, etc.
 
+    # Optional overrides — if the person knows their own numbers, use
+    # those instead of the cached averages.
+    custom_groceries: Optional[float] = None
+    transportation_mode: str = "transit"  # "transit" | "car" | "none"
+    custom_transportation_cost: Optional[float] = None
+
 
 class AffordabilityResponse(BaseModel):
     region_name: str
     estimated_rent: float
     estimated_groceries: float
-    estimated_transit: float
+    estimated_transportation: float
+    transportation_mode: str
     total_monthly_expenses: float
     monthly_surplus: float
     months_to_goal: Optional[float] = None
     is_currently_affordable: bool
     notes: list[str] = []
+
+
+class RegionRentOut(BaseModel):
+    region_id: int
+    region_name: str
+    rents: list[RentDataOut]

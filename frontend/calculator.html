@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Affordability Calculator — Vancouver Housing Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/theme.css">
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<nav class="site-nav" id="site-nav"></nav>
+
+<div class="tear-strip"></div>
+<div class="sheet">
+  <div class="fastener"></div>
+  <header class="report-head">
+    <h1>Affordability Calculator</h1>
+    <span class="report-no">No. 0003</span>
+  </header>
+
+  <form id="calc-form">
+    <div class="field-block">
+      <div class="field">
+        <label for="region">City</label>
+        <select id="region" required></select>
+      </div>
+      <div class="field">
+        <label for="bedroom">Unit type</label>
+        <select id="bedroom" required>
+          <option value="Studio">Studio</option>
+          <option value="1 Bedroom" selected>1 Bedroom</option>
+          <option value="2 Bedroom">2 Bedroom</option>
+          <option value="3 Bedroom +">3 Bedroom +</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="income">Monthly income ($)</label>
+        <input type="number" id="income" min="0" step="1" required placeholder="4000">
+      </div>
+      <div class="field">
+        <label for="extra">Other monthly expenses ($)</label>
+        <input type="number" id="extra" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="savings">Current savings ($)</label>
+        <input type="number" id="savings" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="goal">Savings goal ($, optional)</label>
+        <input type="number" id="goal" min="0" step="1" placeholder="5000">
+      </div>
+      <div class="field">
+        <label for="custom-groceries">Your monthly groceries ($, optional)</label>
+        <input type="number" id="custom-groceries" min="0" step="1" placeholder="use estimate">
+      </div>
+      <div class="field">
+        <label for="transport-mode">How do you get around?</label>
+        <select id="transport-mode">
+          <option value="transit" selected>Transit</option>
+          <option value="car">Car</option>
+          <option value="none">Walk / bike / neither</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="custom-transport">Your monthly transportation cost ($, optional)</label>
+        <input type="number" id="custom-transport" min="0" step="1" placeholder="use average">
+      </div>
+    </div>
+
+    <button type="submit" class="primary-btn">Calculate affordability</button>
+    <p class="status-line" id="status"></p>
+  </form>
+
+  <aside class="live-tape">
+    <div class="tape-head">LIVE ENTRY LOG</div>
+    <div class="tape-lines" id="tape-lines"></div>
+  </aside>
+
+  <section class="ledger hidden" id="ledger">
+    <div class="ledger-row"><span>Rent</span><span class="amount" id="row-rent"></span></div>
+    <div class="ledger-row"><span>Groceries</span><span class="amount" id="row-groceries"></span></div>
+    <div class="ledger-row"><span>Transportation</span><span class="amount" id="row-transit"></span></div>
+    <div class="ledger-row total"><span>Total expenses</span><span class="amount" id="row-total"></span></div>
+    <div class="ledger-row surplus" id="row-surplus-wrap"><span>Monthly surplus</span><span class="amount" id="row-surplus"></span></div>
+    <div class="ledger-row" id="row-goal-wrap" style="display:none;"><span>Months to savings goal</span><span class="amount" id="row-goal"></span></div>
+    <div class="notes" id="notes-block" style="display:none;"></div>
+
+    <div class="verdict-area">
+      <div class="stamp" id="stamp"></div>
+    </div>
+  </section>
+
+  <footer class="report-foot">
+    Data: CMHC Rental Market Survey · TransLink fare schedule · StatsCan average retail prices
+  </footer>
+</div>
+
+<script src="shared/background.js"></script>
+<script src="shared/api.js"></script>
+<script src="shared/state.js"></script>
+<script src="shared/effects.js"></script>
+<script src="shared/nav.js"></script>
+<script>
+  const regionSelect = document.getElementById("region");
+  const form = document.getElementById("calc-form");
+  const statusLine = document.getElementById("status");
+  const ledger = document.getElementById("ledger");
+  const stamp = document.getElementById("stamp");
+
+  async function loadRegions() {
+    try {
+      const regions = await fetchRegions();
+      regionSelect.innerHTML = regions
+        .map(r => `<option value="${r.id}">${r.name}</option>`)
+        .join("");
+
+      // If a city was picked on another page (e.g. the Rent Explorer),
+      // pre-select it here.
+      const selected = getSelectedRegion();
+      if (selected && regions.some(r => r.id === selected.id)) {
+        regionSelect.value = selected.id;
+      }
+    } catch (err) {
+      statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    statusLine.textContent = "";
+    stamp.classList.remove("animate");
+    stamp.style.opacity = 0;
+
+    const payload = {
+      region_id: Number(regionSelect.value),
+      bedroom_type: document.getElementById("bedroom").value,
+      monthly_income: Number(document.getElementById("income").value),
+      current_savings: Number(document.getElementById("savings").value || 0),
+      monthly_extra_expenses: Number(document.getElementById("extra").value || 0),
+      transportation_mode: document.getElementById("transport-mode").value,
+    };
+    const goalVal = document.getElementById("goal").value;
+    if (goalVal) payload.savings_goal = Number(goalVal);
+
+    const customGroceries = document.getElementById("custom-groceries").value;
+    if (customGroceries) payload.custom_groceries = Number(customGroceries);
+
+    const customTransport = document.getElementById("custom-transport").value;
+    if (customTransport) payload.custom_transportation_cost = Number(customTransport);
+
+    try {
+      const res = await fetch(`${API_BASE}/affordability/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        statusLine.textContent = data.detail || "The backend rejected this request.";
+        ledger.classList.add("hidden");
+        return;
+      }
+
+      // Remember this city for other pages.
+      const selectedOption = regionSelect.options[regionSelect.selectedIndex];
+      setSelectedRegion(payload.region_id, selectedOption.textContent);
+
+      renderResult(data);
+    } catch (err) {
+      statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+    }
+  });
+
+  function renderResult(data) {
+    animateMoney(document.getElementById("row-rent"), data.estimated_rent);
+    animateMoney(document.getElementById("row-groceries"), data.estimated_groceries);
+    animateMoney(document.getElementById("row-transit"), data.estimated_transportation);
+    animateMoney(document.getElementById("row-total"), data.total_monthly_expenses);
+
+    const surplusRow = document.getElementById("row-surplus-wrap");
+    const surplusVal = document.getElementById("row-surplus");
+    animateMoney(surplusVal, data.monthly_surplus);
+    surplusRow.classList.toggle("negative", data.monthly_surplus < 0);
+
+    const goalWrap = document.getElementById("row-goal-wrap");
+    if (data.months_to_goal !== null && data.months_to_goal !== undefined) {
+      goalWrap.style.display = "flex";
+      document.getElementById("row-goal").textContent = data.months_to_goal + " mo.";
+    } else {
+      goalWrap.style.display = "none";
+    }
+
+    const notesBlock = document.getElementById("notes-block");
+    if (data.notes && data.notes.length) {
+      notesBlock.style.display = "block";
+      notesBlock.innerHTML = data.notes.map(n => `<div>${n}</div>`).join("");
+    } else {
+      notesBlock.style.display = "none";
+    }
+
+    stamp.textContent = data.is_currently_affordable ? "Affordable" : "Over budget";
+    stamp.className = "stamp " + (data.is_currently_affordable ? "affordable" : "over");
+
+    ledger.classList.remove("hidden");
+    void stamp.offsetWidth;
+    stamp.classList.add("animate");
+  }
+
+  loadRegions();
+
+  // ---------- Live entry log (real-time tape) ----------
+  const tapeLines = document.getElementById("tape-lines");
+  let totalLine = null;
+
+  function printTapeLine(text) {
+    const line = document.createElement("div");
+    line.textContent = text;
+    tapeLines.appendChild(line);
+    tapeLines.scrollTop = tapeLines.scrollHeight;
+  }
+
+  function updateQuickBalance() {
+    const income = Number(document.getElementById("income").value || 0);
+    const extra = Number(document.getElementById("extra").value || 0);
+    if (!income) return;
+
+    if (!totalLine) {
+      totalLine = document.createElement("div");
+      totalLine.className = "tape-total";
+      tapeLines.appendChild(totalLine);
+    }
+    totalLine.textContent = `QUICK CHECK — income minus extras: ${money(income - extra)}`;
+    tapeLines.scrollTop = tapeLines.scrollHeight;
+  }
+
+  document.getElementById("region").addEventListener("change", (e) => {
+    printTapeLine(`> City set to ${e.target.options[e.target.selectedIndex].textContent}`);
+  });
+  document.getElementById("bedroom").addEventListener("change", (e) => {
+    printTapeLine(`> Unit type: ${e.target.value}`);
+  });
+  document.getElementById("income").addEventListener("change", (e) => {
+    printTapeLine(`> Monthly income: ${money(Number(e.target.value || 0))}`);
+    updateQuickBalance();
+  });
+  document.getElementById("extra").addEventListener("change", (e) => {
+    printTapeLine(`> Other expenses: ${money(Number(e.target.value || 0))}`);
+    updateQuickBalance();
+  });
+  document.getElementById("savings").addEventListener("change", (e) => {
+    printTapeLine(`> Current savings: ${money(Number(e.target.value || 0))}`);
+  });
+  document.getElementById("goal").addEventListener("change", (e) => {
+    if (e.target.value) printTapeLine(`> Savings goal: ${money(Number(e.target.value))}`);
+  });
+  document.getElementById("custom-groceries").addEventListener("change", (e) => {
+    if (e.target.value) printTapeLine(`> Groceries override: ${money(Number(e.target.value))}`);
+  });
+  document.getElementById("transport-mode").addEventListener("change", (e) => {
+    printTapeLine(`> Transportation mode: ${e.target.options[e.target.selectedIndex].textContent}`);
+  });
+  document.getElementById("custom-transport").addEventListener("change", (e) => {
+    if (e.target.value) printTapeLine(`> Transportation override: ${money(Number(e.target.value))}`);
+  });
+
+</script>
+
+</body>
+</html>

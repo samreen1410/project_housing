@@ -76,6 +76,21 @@ class TransitFare(Base):
     effective_date = Column(String, nullable=False)  # when this fare took effect
 
 
+class CarCost(Base):
+    """
+    Static reference for the average monthly cost of car ownership
+    (insurance + gas + maintenance, blended) — used when someone picks
+    "car" as their transportation mode instead of transit and doesn't
+    supply their own number.
+    """
+    __tablename__ = "car_costs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    monthly_cost = Column(Float, nullable=False)
+    source_note = Column(String, nullable=True)
+    effective_date = Column(String, nullable=False)
+
+
 class UserScenario(Base):
     """A saved 'what-if' budget scenario. Wire up once auth is added."""
     __tablename__ = "user_scenarios"

@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 class AffordabilityResult:
     estimated_rent: float
     estimated_groceries: float
-    estimated_transit: float
+    estimated_transportation: float
     total_monthly_expenses: float
     monthly_surplus: float
     months_to_goal: float | None
@@ -35,7 +35,7 @@ def calculate_affordability(
         monthly_income: float,
         avg_rent: float,
         monthly_groceries_estimate: float,
-        monthly_transit_cost: float,
+        monthly_transportation_cost: float,
         monthly_extra_expenses: float = 0.0,
         current_savings: float = 0.0,
         savings_goal: float | None = None,
@@ -43,7 +43,7 @@ def calculate_affordability(
     notes = []
 
     total_expenses = (
-            avg_rent + monthly_groceries_estimate + monthly_transit_cost
+            avg_rent + monthly_groceries_estimate + monthly_transportation_cost
             + monthly_extra_expenses
     )
     surplus = monthly_income - total_expenses
@@ -77,7 +77,7 @@ def calculate_affordability(
     return AffordabilityResult(
         estimated_rent=round(avg_rent, 2),
         estimated_groceries=round(monthly_groceries_estimate, 2),
-        estimated_transit=round(monthly_transit_cost, 2),
+        estimated_transportation=round(monthly_transportation_cost, 2),
         total_monthly_expenses=round(total_expenses, 2),
         monthly_surplus=round(surplus, 2),
         months_to_goal=round(months_to_goal, 1) if months_to_goal is not None else None,
