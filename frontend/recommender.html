@@ -3,37 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neighbourhood Recommender — Vancouver Housing Tool</title>
+<title>Neighbourhood Recommender</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/theme.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
-<nav class="site-nav" id="site-nav"></nav>
 
-<div class="tear-strip"></div>
-<div class="sheet">
-  <div class="fastener"></div>
-  <header class="report-head">
-    <h1>Neighbourhood Recommender</h1>
-    <span class="report-no">No. 0004</span>
+<div class="page-card">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
+        <h1>Neighbourhood Recommender</h1>
+        <p class="tagline">Tell us your budget, and we'll rank every city against it.</p>
+      </div>
+      <nav class="site-nav" id="site-nav"></nav>
+    </div>
+    <svg class="skyline" viewBox="0 0 1200 185" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="horizonGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.22"/>
+        </linearGradient>
+        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1f3b52" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#0a1420" stop-opacity="0.95"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="185" fill="url(#horizonGlow)"/>
+      <polygon points="0,160 0,100 90,60 180,95 270,45 360,85 450,35 540,80 630,50 720,90 810,55 900,95 990,65 1080,100 1170,75 1200,90 1200,160" fill="#2a4766" opacity="0.75"/>
+      <polygon points="0,160 0,125 100,85 200,115 300,80 400,110 500,75 600,105 700,80 800,120 900,90 1000,120 1100,95 1200,120 1200,160" fill="#1c2f4a"/>
+      <g fill="#060b12">
+        <rect x="30" y="110" width="22" height="50"/>
+        <rect x="60" y="95" width="16" height="65"/>
+        <rect x="85" y="118" width="24" height="42"/>
+        <rect x="150" y="100" width="20" height="60"/>
+        <rect x="180" y="115" width="18" height="45"/>
+        <rect x="260" y="90" width="24" height="70"/>
+        <rect x="300" y="112" width="16" height="48"/>
+        <rect x="420" y="100" width="20" height="60"/>
+        <rect x="460" y="118" width="22" height="42"/>
+        <rect x="560" y="92" width="18" height="68"/>
+        <rect x="600" y="110" width="24" height="50"/>
+        <rect x="700" y="100" width="20" height="60"/>
+        <rect x="740" y="118" width="16" height="42"/>
+        <rect x="860" y="95" width="22" height="65"/>
+        <rect x="900" y="112" width="18" height="48"/>
+        <rect x="1000" y="105" width="20" height="55"/>
+        <rect x="1040" y="120" width="24" height="40"/>
+        <rect x="1120" y="98" width="18" height="62"/>
+      </g>
+      <g fill="#2dd4bf">
+        <rect class="twinkle d1" x="38" y="122" width="5" height="5"/>
+        <rect class="twinkle d2" x="66" y="108" width="5" height="5"/>
+        <rect class="twinkle d3" x="158" y="112" width="5" height="5"/>
+        <rect class="twinkle d4" x="268" y="102" width="5" height="5"/>
+        <rect class="twinkle d5" x="428" y="112" width="5" height="5"/>
+        <rect class="twinkle d6" x="568" y="104" width="5" height="5"/>
+        <rect class="twinkle d7" x="708" y="112" width="5" height="5"/>
+        <rect class="twinkle d8" x="868" y="106" width="5" height="5"/>
+        <rect class="twinkle d2" x="1008" y="116" width="5" height="5"/>
+        <rect class="twinkle d5" x="1128" y="110" width="5" height="5"/>
+      </g>
+      <rect x="0" y="153" width="1200" height="32" fill="url(#waterGrad)"/>
+      <g stroke="#2dd4bf" stroke-opacity="0.18" stroke-width="1">
+        <line x1="40" y1="162" x2="90" y2="162"/>
+        <line x1="140" y1="168" x2="200" y2="168"/>
+        <line x1="260" y1="160" x2="310" y2="160"/>
+        <line x1="420" y1="170" x2="470" y2="170"/>
+        <line x1="560" y1="163" x2="610" y2="163"/>
+        <line x1="700" y1="169" x2="750" y2="169"/>
+        <line x1="860" y1="161" x2="910" y2="161"/>
+        <line x1="1000" y1="167" x2="1050" y2="167"/>
+        <line x1="1120" y1="162" x2="1170" y2="162"/>
+      </g>
+      <g fill="#2dd4bf" opacity="0.14">
+        <rect x="37" y="160" width="6" height="15"/>
+        <rect x="157" y="160" width="6" height="13"/>
+        <rect x="427" y="160" width="6" height="15"/>
+        <rect x="567" y="160" width="6" height="13"/>
+        <rect x="707" y="160" width="6" height="15"/>
+        <rect x="867" y="160" width="6" height="13"/>
+        <rect x="1007" y="160" width="6" height="15"/>
+      </g>
+      <rect x="0" y="179" width="1200" height="6" fill="#8a8169" opacity="0.85"/>
+    </svg>
   </header>
 
+  <div class="sheet">
   <p style="line-height:1.6; margin-top:0;">
-    Tell us your budget and situation once — we'll rank every Metro
+    Tell us your budget and situation once, and we'll rank every Metro
     Vancouver city we have data for, best fit first.
   </p>
 
   <form id="rec-form">
     <div class="field-block">
       <div class="field">
-        <label for="income">Monthly income ($)</label>
+        <label for="income">Monthly income ($)<span class="required-mark">*</span></label>
         <input type="number" id="income" min="0" step="1" required placeholder="4000">
       </div>
       <div class="field">
-        <label for="bedroom">Unit type</label>
+        <label for="bedroom">Unit type<span class="required-mark">*</span></label>
         <select id="bedroom" required>
           <option value="Studio">Studio</option>
           <option value="1 Bedroom" selected>1 Bedroom</option>
@@ -41,25 +114,46 @@
           <option value="3 Bedroom +">3 Bedroom +</option>
         </select>
       </div>
+    </div>
+
+    <div class="field-block">
       <div class="field">
-        <label for="extra">Other monthly expenses ($)</label>
-        <input type="number" id="extra" min="0" step="1" value="0">
-      </div>
-      <div class="field">
-        <label for="transport-mode">How do you get around?</label>
+        <label for="transport-mode">How do you get around? (optional)</label>
         <select id="transport-mode">
           <option value="transit" selected>Transit</option>
           <option value="car">Car</option>
           <option value="none">Walk / bike / neither</option>
         </select>
       </div>
+      <div class="field" id="transit-plan-field">
+        <label for="transit-plan">Your transit plan</label>
+        <select id="transit-plan">
+          <option value="">Use average fare</option>
+        </select>
+      </div>
+      <div class="field hidden" id="custom-transport-field">
+        <label for="custom-transport" id="custom-transport-label">Your monthly transportation cost ($)</label>
+        <input type="number" id="custom-transport" min="0" step="1" placeholder="e.g. your car payment, gas, and insurance">
+      </div>
+    </div>
+
+    <div class="field-block">
       <div class="field">
         <label for="custom-groceries">Your monthly groceries ($, optional)</label>
         <input type="number" id="custom-groceries" min="0" step="1" placeholder="use estimate">
       </div>
       <div class="field">
-        <label for="custom-transport">Your transportation cost ($, optional)</label>
-        <input type="number" id="custom-transport" min="0" step="1" placeholder="use average">
+        <label for="savings">Current savings ($, optional)</label>
+        <input type="number" id="savings" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="goal">Total savings goal ($, optional)</label>
+        <input type="number" id="goal" min="0" step="1" placeholder="e.g. 5000 for a deposit">
+        <span class="field-hint">The total amount you want saved up, not a monthly amount.</span>
+      </div>
+      <div class="field">
+        <label for="extra">Other monthly expenses ($, optional)</label>
+        <input type="number" id="extra" min="0" step="1" value="0">
       </div>
     </div>
 
@@ -67,11 +161,17 @@
     <p class="status-line" id="status"></p>
   </form>
 
+  <div class="hidden" id="chart-wrap" style="margin-top: 30px;">
+    <canvas id="surplus-chart"></canvas>
+  </div>
+
+  <p class="results-hint hidden" id="results-hint">Click a city to see its full breakdown.</p>
   <section class="ledger hidden" id="results"></section>
 
   <footer class="report-foot">
-    Ranked by monthly surplus — highest surplus (most breathing room) first.
+    Ranked by monthly surplus, highest surplus (most breathing room) first.
   </footer>
+  </div>
 </div>
 
 <script src="shared/background.js"></script>
@@ -82,23 +182,76 @@
   const form = document.getElementById("rec-form");
   const status = document.getElementById("status");
   const results = document.getElementById("results");
+  const chartWrap = document.getElementById("chart-wrap");
+
+  const transportModeSelect = document.getElementById("transport-mode");
+  const transitPlanField = document.getElementById("transit-plan-field");
+  const transitPlanSelect = document.getElementById("transit-plan");
+  const customTransportField = document.getElementById("custom-transport-field");
+  const customTransportInput = document.getElementById("custom-transport");
+  const customTransportLabel = document.getElementById("custom-transport-label");
+
+  let surplusChart = null;
+
+  async function loadTransitPlans() {
+    try {
+      const plans = await fetchTransitPlans();
+      const options = plans
+        .map(p => `<option value="${p.monthly_pass_cost}">Zone ${p.zone_count} (${money(p.monthly_pass_cost)}/mo)</option>`)
+        .join("");
+      transitPlanSelect.innerHTML = `<option value="">Use average fare</option>` + options;
+    } catch (err) {
+      // Non-fatal: the custom/average fallback still works without this.
+    }
+  }
+
+  function updateTransportFieldsVisibility() {
+    const mode = transportModeSelect.value;
+    transitPlanField.classList.toggle("hidden", mode !== "transit");
+    customTransportField.classList.toggle("hidden", mode === "none");
+
+    if (mode === "car") {
+      customTransportLabel.textContent = "Your monthly car cost ($)";
+      customTransportInput.placeholder = "leave blank to use the BC average";
+    } else if (mode === "transit") {
+      customTransportLabel.textContent = "...or enter your own monthly transit cost ($)";
+      customTransportInput.placeholder = "overrides the plan above, if filled";
+    }
+  }
+
+  function getTransportationOverride() {
+    const customVal = customTransportInput.value;
+    if (customVal) return Number(customVal);
+    if (transportModeSelect.value === "transit" && transitPlanSelect.value) {
+      return Number(transitPlanSelect.value);
+    }
+    return null;
+  }
+
+  [transportModeSelect, transitPlanSelect].forEach(el =>
+    el.addEventListener("change", updateTransportFieldsVisibility)
+  );
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     status.textContent = "";
     results.classList.add("hidden");
+    chartWrap.classList.add("hidden");
     results.innerHTML = "";
 
     const payload = {
       monthly_income: Number(document.getElementById("income").value),
       bedroom_type: document.getElementById("bedroom").value,
       monthly_extra_expenses: Number(document.getElementById("extra").value || 0),
-      transportation_mode: document.getElementById("transport-mode").value,
+      transportation_mode: transportModeSelect.value,
+      current_savings: Number(document.getElementById("savings").value || 0),
     };
+    const goalVal = document.getElementById("goal").value;
+    if (goalVal) payload.savings_goal = Number(goalVal);
     const customGroceries = document.getElementById("custom-groceries").value;
     if (customGroceries) payload.custom_groceries = Number(customGroceries);
-    const customTransport = document.getElementById("custom-transport").value;
-    if (customTransport) payload.custom_transportation_cost = Number(customTransport);
+    const transportOverride = getTransportationOverride();
+    if (transportOverride !== null) payload.custom_transportation_cost = transportOverride;
 
     try {
       const res = await fetch(`${API_BASE}/recommend/matches`, {
@@ -117,41 +270,124 @@
         return;
       }
 
-      renderMatches(matches);
+      renderSurplusChart(matches);
+      renderMatches(matches, payload);
     } catch (err) {
-      status.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+      status.textContent = "Can't reach the backend. Is uvicorn running on port 8000?";
     }
   });
 
-  function renderMatches(matches) {
+  function renderSurplusChart(matches) {
+    const sorted = [...matches].sort((a, b) => b.monthly_surplus - a.monthly_surplus);
+    const ctx = document.getElementById("surplus-chart").getContext("2d");
+
+    if (surplusChart) surplusChart.destroy();
+    surplusChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: sorted.map(m => m.region_name),
+        datasets: [{
+          label: "Monthly surplus",
+          data: sorted.map(m => m.monthly_surplus),
+          backgroundColor: sorted.map(m => m.is_currently_affordable ? "#2dd4bf" : "#f87171"),
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => money(ctx.parsed.x) } },
+        },
+        scales: {
+          x: {
+            ticks: { callback: (v) => "$" + v.toLocaleString(), color: "#b8c2cf" },
+            grid: { color: "rgba(184, 194, 207, 0.12)" },
+          },
+          y: { ticks: { color: "#b8c2cf" }, grid: { display: false } },
+        },
+      },
+    });
+
+    chartWrap.classList.remove("hidden");
+  }
+
+  function renderMatches(matches, submittedPayload) {
     results.innerHTML = matches.map((m, i) => {
       const badge = m.is_currently_affordable
-        ? `<span style="color: var(--stamp-green); font-weight:700;">✓ affordable</span>`
-        : `<span style="color: var(--stamp-red); font-weight:700;">over budget</span>`;
+        ? `<span style="color: var(--teal); font-weight:700;">affordable</span>`
+        : `<span style="color: var(--danger); font-weight:700;">over budget</span>`;
       const rank = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
 
       return `
-        <div class="ledger-row" style="flex-direction:column; align-items:stretch; gap:4px; cursor:pointer;" data-region-id="${m.region_id}" data-region-name="${m.region_name}">
-          <div style="display:flex; justify-content:space-between;">
+        <div class="match-row" data-region-id="${m.region_id}" data-region-name="${m.region_name}">
+          <div class="match-summary">
             <span><strong>${rank}${m.region_name}</strong></span>
-            <span class="amount">${money(m.monthly_surplus)} surplus</span>
+            <span class="match-right">
+              <span class="amount">${money(m.monthly_surplus)} surplus</span>
+              ${badge}
+              <span class="match-chevron">⌄</span>
+            </span>
           </div>
-          <div style="font-size:0.78rem; color:var(--ink-soft); display:flex; justify-content:space-between;">
-            <span>Rent ${money(m.estimated_rent)} · Groceries ${money(m.estimated_groceries)} · Transport ${money(m.estimated_transportation)}</span>
-            ${badge}
-          </div>
+          <div class="match-detail hidden" id="detail-${m.region_id}"></div>
         </div>`;
     }).join("");
 
     results.classList.remove("hidden");
+    document.getElementById("results-hint").classList.remove("hidden");
 
-    results.querySelectorAll("[data-region-id]").forEach(row => {
-      row.addEventListener("click", () => {
-        setSelectedRegion(row.dataset.regionId, row.dataset.regionName);
-        window.location.href = "calculator.html";
+    results.querySelectorAll(".match-row").forEach(row => {
+      const regionId = row.dataset.regionId;
+      const match = matches.find(m => m.region_id == regionId);
+      row.querySelector(".match-summary").addEventListener("click", () => {
+        toggleDetail(row, match, submittedPayload);
       });
     });
   }
+
+  function toggleDetail(row, match, payload) {
+    const detail = row.querySelector(".match-detail");
+    const alreadyOpen = !detail.classList.contains("hidden");
+
+    results.querySelectorAll(".match-detail").forEach(d => d.classList.add("hidden"));
+    results.querySelectorAll(".match-row").forEach(r => r.classList.remove("open"));
+    if (alreadyOpen) return;
+
+    row.classList.add("open");
+
+    const other = payload.monthly_extra_expenses || 0;
+    let html = `
+      <div class="ledger-row"><span>Rent</span><span class="amount">${money(match.estimated_rent)}</span></div>
+      <div class="ledger-row"><span>Groceries</span><span class="amount">${money(match.estimated_groceries)}</span></div>
+      <div class="ledger-row"><span>Transportation</span><span class="amount">${money(match.estimated_transportation)}</span></div>
+      <div class="ledger-row"><span>Other</span><span class="amount">${money(other)}</span></div>
+      <div class="ledger-row total"><span>Total expenses</span><span class="amount">${money(match.total_monthly_expenses)}</span></div>
+    `;
+
+    if (match.is_currently_affordable) {
+      html += `<p class="match-explain">${money(payload.monthly_income)} income minus ${money(match.total_monthly_expenses)} in expenses leaves <strong>${money(match.monthly_surplus)}</strong> a month. That's why ${match.region_name} is marked affordable.</p>`;
+    } else {
+      html += `<p class="match-explain">${money(payload.monthly_income)} income minus ${money(match.total_monthly_expenses)} in expenses comes up <strong>${money(Math.abs(match.monthly_surplus))} short</strong> each month. That's why ${match.region_name} is marked over budget.</p>`;
+    }
+
+    if (payload.savings_goal && match.months_to_goal !== null && match.months_to_goal !== undefined) {
+      html += `<p class="match-explain">At that surplus, your ${money(payload.savings_goal)} savings goal would take about <strong>${match.months_to_goal} months</strong> here.</p>`;
+    }
+
+    html += `<button type="button" class="secondary-btn check-in-calc" data-region-id="${match.region_id}" data-region-name="${match.region_name}">Check this city in the Calculator</button>`;
+
+    detail.innerHTML = html;
+    detail.classList.remove("hidden");
+
+    detail.querySelector(".check-in-calc").addEventListener("click", (e) => {
+      setSelectedRegion(e.target.dataset.regionId, e.target.dataset.regionName);
+      window.location.href = "calculator.html";
+    });
+  }
+
+  updateTransportFieldsVisibility();
+  loadTransitPlans();
 </script>
 
 </body>

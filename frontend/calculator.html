@@ -3,32 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Affordability Calculator — Vancouver Housing Tool</title>
+<title>Affordability Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/theme.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
-<nav class="site-nav" id="site-nav"></nav>
 
-<div class="tear-strip"></div>
-<div class="sheet">
-  <div class="fastener"></div>
-  <header class="report-head">
-    <h1>Affordability Calculator</h1>
-    <span class="report-no">No. 0003</span>
+<div class="page-card">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
+        <h1>Affordability Calculator</h1>
+        <p class="tagline">See what you can actually afford, with your own numbers or ours.</p>
+      </div>
+      <nav class="site-nav" id="site-nav"></nav>
+    </div>
+    <svg class="skyline" viewBox="0 0 1200 185" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="horizonGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.22"/>
+        </linearGradient>
+        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1f3b52" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#0a1420" stop-opacity="0.95"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="185" fill="url(#horizonGlow)"/>
+      <polygon points="0,160 0,100 90,60 180,95 270,45 360,85 450,35 540,80 630,50 720,90 810,55 900,95 990,65 1080,100 1170,75 1200,90 1200,160" fill="#2a4766" opacity="0.75"/>
+      <polygon points="0,160 0,125 100,85 200,115 300,80 400,110 500,75 600,105 700,80 800,120 900,90 1000,120 1100,95 1200,120 1200,160" fill="#1c2f4a"/>
+      <g fill="#060b12">
+        <rect x="30" y="110" width="22" height="50"/>
+        <rect x="60" y="95" width="16" height="65"/>
+        <rect x="85" y="118" width="24" height="42"/>
+        <rect x="150" y="100" width="20" height="60"/>
+        <rect x="180" y="115" width="18" height="45"/>
+        <rect x="260" y="90" width="24" height="70"/>
+        <rect x="300" y="112" width="16" height="48"/>
+        <rect x="420" y="100" width="20" height="60"/>
+        <rect x="460" y="118" width="22" height="42"/>
+        <rect x="560" y="92" width="18" height="68"/>
+        <rect x="600" y="110" width="24" height="50"/>
+        <rect x="700" y="100" width="20" height="60"/>
+        <rect x="740" y="118" width="16" height="42"/>
+        <rect x="860" y="95" width="22" height="65"/>
+        <rect x="900" y="112" width="18" height="48"/>
+        <rect x="1000" y="105" width="20" height="55"/>
+        <rect x="1040" y="120" width="24" height="40"/>
+        <rect x="1120" y="98" width="18" height="62"/>
+      </g>
+      <g fill="#2dd4bf">
+        <rect class="twinkle d1" x="38" y="122" width="5" height="5"/>
+        <rect class="twinkle d2" x="66" y="108" width="5" height="5"/>
+        <rect class="twinkle d3" x="158" y="112" width="5" height="5"/>
+        <rect class="twinkle d4" x="268" y="102" width="5" height="5"/>
+        <rect class="twinkle d5" x="428" y="112" width="5" height="5"/>
+        <rect class="twinkle d6" x="568" y="104" width="5" height="5"/>
+        <rect class="twinkle d7" x="708" y="112" width="5" height="5"/>
+        <rect class="twinkle d8" x="868" y="106" width="5" height="5"/>
+        <rect class="twinkle d2" x="1008" y="116" width="5" height="5"/>
+        <rect class="twinkle d5" x="1128" y="110" width="5" height="5"/>
+      </g>
+      <rect x="0" y="153" width="1200" height="32" fill="url(#waterGrad)"/>
+      <g stroke="#2dd4bf" stroke-opacity="0.18" stroke-width="1">
+        <line x1="40" y1="162" x2="90" y2="162"/>
+        <line x1="140" y1="168" x2="200" y2="168"/>
+        <line x1="260" y1="160" x2="310" y2="160"/>
+        <line x1="420" y1="170" x2="470" y2="170"/>
+        <line x1="560" y1="163" x2="610" y2="163"/>
+        <line x1="700" y1="169" x2="750" y2="169"/>
+        <line x1="860" y1="161" x2="910" y2="161"/>
+        <line x1="1000" y1="167" x2="1050" y2="167"/>
+        <line x1="1120" y1="162" x2="1170" y2="162"/>
+      </g>
+      <g fill="#2dd4bf" opacity="0.14">
+        <rect x="37" y="160" width="6" height="15"/>
+        <rect x="157" y="160" width="6" height="13"/>
+        <rect x="427" y="160" width="6" height="15"/>
+        <rect x="567" y="160" width="6" height="13"/>
+        <rect x="707" y="160" width="6" height="15"/>
+        <rect x="867" y="160" width="6" height="13"/>
+        <rect x="1007" y="160" width="6" height="15"/>
+      </g>
+      <rect x="0" y="179" width="1200" height="6" fill="#8a8169" opacity="0.85"/>
+    </svg>
   </header>
 
+  <div class="sheet">
   <form id="calc-form">
     <div class="field-block">
       <div class="field">
-        <label for="region">City</label>
+        <label for="region">City<span class="required-mark">*</span></label>
         <select id="region" required></select>
       </div>
       <div class="field">
-        <label for="bedroom">Unit type</label>
+        <label for="bedroom">Unit type<span class="required-mark">*</span></label>
         <select id="bedroom" required>
           <option value="Studio">Studio</option>
           <option value="1 Bedroom" selected>1 Bedroom</option>
@@ -37,65 +110,102 @@
         </select>
       </div>
       <div class="field">
-        <label for="income">Monthly income ($)</label>
+        <label for="income">Monthly income ($)<span class="required-mark">*</span></label>
         <input type="number" id="income" min="0" step="1" required placeholder="4000">
       </div>
+    </div>
+
+    <div class="field-block">
       <div class="field">
-        <label for="extra">Other monthly expenses ($)</label>
-        <input type="number" id="extra" min="0" step="1" value="0">
-      </div>
-      <div class="field">
-        <label for="savings">Current savings ($)</label>
-        <input type="number" id="savings" min="0" step="1" value="0">
-      </div>
-      <div class="field">
-        <label for="goal">Savings goal ($, optional)</label>
-        <input type="number" id="goal" min="0" step="1" placeholder="5000">
-      </div>
-      <div class="field">
-        <label for="custom-groceries">Your monthly groceries ($, optional)</label>
-        <input type="number" id="custom-groceries" min="0" step="1" placeholder="use estimate">
-      </div>
-      <div class="field">
-        <label for="transport-mode">How do you get around?</label>
+        <label for="transport-mode">How do you get around? (optional)</label>
         <select id="transport-mode">
           <option value="transit" selected>Transit</option>
           <option value="car">Car</option>
           <option value="none">Walk / bike / neither</option>
         </select>
       </div>
-      <div class="field">
-        <label for="custom-transport">Your monthly transportation cost ($, optional)</label>
-        <input type="number" id="custom-transport" min="0" step="1" placeholder="use average">
+      <div class="field" id="transit-plan-field">
+        <label for="transit-plan">Your transit plan</label>
+        <select id="transit-plan">
+          <option value="">Use average fare</option>
+        </select>
+      </div>
+      <div class="field hidden" id="custom-transport-field">
+        <label for="custom-transport" id="custom-transport-label">Your monthly transportation cost ($)</label>
+        <input type="number" id="custom-transport" min="0" step="1" placeholder="e.g. your car payment + gas + insurance">
       </div>
     </div>
+
+    <div class="field-block">
+      <div class="field">
+        <label for="custom-groceries">Your monthly groceries ($, optional)</label>
+        <input type="number" id="custom-groceries" min="0" step="1" placeholder="use estimate">
+      </div>
+      <div class="field">
+        <label for="savings">Current savings ($, optional)</label>
+        <input type="number" id="savings" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <label for="goal">Total savings goal ($, optional)</label>
+        <input type="number" id="goal" min="0" step="1" placeholder="e.g. 5000 for a deposit">
+        <span class="field-hint">The total amount you want saved up, not a monthly amount.</span>
+      </div>
+      <div class="field">
+        <label for="extra">Other monthly expenses ($, optional)</label>
+        <input type="number" id="extra" min="0" step="1" value="0">
+      </div>
+    </div>
+
+    <div class="preview-strip hidden" id="preview-strip">
+      <div class="preview-chip">
+        <div class="chip-label">Rent</div>
+        <div class="chip-value" id="preview-rent">...</div>
+      </div>
+      <div class="preview-chip">
+        <div class="chip-label">Groceries</div>
+        <div class="chip-value" id="preview-groceries">...</div>
+      </div>
+      <div class="preview-chip">
+        <div class="chip-label">Transportation</div>
+        <div class="chip-value" id="preview-transport">...</div>
+      </div>
+    </div>
+    <p class="preview-hint" id="preview-hint">Pick a city to see live cost estimates as you fill this in.</p>
 
     <button type="submit" class="primary-btn">Calculate affordability</button>
     <p class="status-line" id="status"></p>
   </form>
 
-  <aside class="live-tape">
-    <div class="tape-head">LIVE ENTRY LOG</div>
-    <div class="tape-lines" id="tape-lines"></div>
-  </aside>
-
   <section class="ledger hidden" id="ledger">
     <div class="ledger-row"><span>Rent</span><span class="amount" id="row-rent"></span></div>
-    <div class="ledger-row"><span>Groceries</span><span class="amount" id="row-groceries"></span></div>
-    <div class="ledger-row"><span>Transportation</span><span class="amount" id="row-transit"></span></div>
+    <div class="ledger-row"><span>Groceries <span class="estimate-tag hidden" id="tag-groceries">(estimate)</span></span><span class="amount" id="row-groceries"></span></div>
+    <div class="ledger-row"><span>Transportation <span class="estimate-tag hidden" id="tag-transport">(estimate)</span></span><span class="amount" id="row-transit"></span></div>
     <div class="ledger-row total"><span>Total expenses</span><span class="amount" id="row-total"></span></div>
     <div class="ledger-row surplus" id="row-surplus-wrap"><span>Monthly surplus</span><span class="amount" id="row-surplus"></span></div>
     <div class="ledger-row" id="row-goal-wrap" style="display:none;"><span>Months to savings goal</span><span class="amount" id="row-goal"></span></div>
     <div class="notes" id="notes-block" style="display:none;"></div>
 
-    <div class="verdict-area">
-      <div class="stamp" id="stamp"></div>
+    <div style="margin-top: 28px; max-width: 280px; margin-left: auto; margin-right: auto;">
+      <canvas id="breakdown-chart"></canvas>
     </div>
+
+    <div class="verdict-card" id="verdict-card">
+      <div class="verdict-icon" id="verdict-icon"></div>
+      <div>
+        <div class="verdict-title" id="verdict-title"></div>
+        <div class="verdict-detail" id="verdict-detail"></div>
+      </div>
+    </div>
+
+    <div class="math-explainer" id="math-explainer"></div>
+
+    <button type="button" class="secondary-btn" id="reset-btn">Start over</button>
   </section>
 
   <footer class="report-foot">
-    Data: CMHC Rental Market Survey · TransLink fare schedule · StatsCan average retail prices
+    Data: CMHC Rental Market Survey, TransLink fare schedule, and StatsCan average retail prices
   </footer>
+  </div>
 </div>
 
 <script src="shared/background.js"></script>
@@ -105,10 +215,28 @@
 <script src="shared/nav.js"></script>
 <script>
   const regionSelect = document.getElementById("region");
+  const bedroomSelect = document.getElementById("bedroom");
+  const transportModeSelect = document.getElementById("transport-mode");
+  const transitPlanField = document.getElementById("transit-plan-field");
+  const transitPlanSelect = document.getElementById("transit-plan");
+  const customTransportField = document.getElementById("custom-transport-field");
+  const customTransportInput = document.getElementById("custom-transport");
+  const customTransportLabel = document.getElementById("custom-transport-label");
+  const customGroceriesInput = document.getElementById("custom-groceries");
+
   const form = document.getElementById("calc-form");
   const statusLine = document.getElementById("status");
   const ledger = document.getElementById("ledger");
-  const stamp = document.getElementById("stamp");
+  const verdictCard = document.getElementById("verdict-card");
+  const verdictIcon = document.getElementById("verdict-icon");
+  const verdictTitle = document.getElementById("verdict-title");
+  const verdictDetail = document.getElementById("verdict-detail");
+  const previewStrip = document.getElementById("preview-strip");
+  const previewHint = document.getElementById("preview-hint");
+  const resetBtn = document.getElementById("reset-btn");
+
+  let transitPlans = [];
+  let previewDebounce = null;
 
   async function loadRegions() {
     try {
@@ -117,39 +245,134 @@
         .map(r => `<option value="${r.id}">${r.name}</option>`)
         .join("");
 
-      // If a city was picked on another page (e.g. the Rent Explorer),
-      // pre-select it here.
       const selected = getSelectedRegion();
       if (selected && regions.some(r => r.id === selected.id)) {
         regionSelect.value = selected.id;
       }
+      schedulePreview();
     } catch (err) {
-      statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+      statusLine.textContent = "Can't reach the backend. Is uvicorn running on port 8000?";
     }
   }
+
+  async function loadTransitPlans() {
+    try {
+      transitPlans = await fetchTransitPlans();
+      const options = transitPlans
+        .map(p => `<option value="${p.monthly_pass_cost}">Zone ${p.zone_count} (${money(p.monthly_pass_cost)}/mo)</option>`)
+        .join("");
+      transitPlanSelect.innerHTML = `<option value="">Use average fare</option>` + options;
+    } catch (err) {
+      // Non-fatal — the custom/average fallback still works without this.
+    }
+  }
+
+  function updateTransportFieldsVisibility() {
+    const mode = transportModeSelect.value;
+    transitPlanField.classList.toggle("hidden", mode !== "transit");
+    customTransportField.classList.toggle("hidden", mode === "none");
+
+    if (mode === "car") {
+      customTransportLabel.textContent = "Your monthly car cost ($)";
+      customTransportInput.placeholder = "leave blank to use the BC average";
+    } else if (mode === "transit") {
+      customTransportLabel.textContent = "...or enter your own monthly transit cost ($)";
+      customTransportInput.placeholder = "overrides the plan above, if filled";
+    }
+  }
+
+  function getTransportationOverride() {
+    // A manually typed cost always wins. Otherwise, a chosen transit plan
+    // acts as the override. Otherwise, no override — the backend estimate
+    // (transit average, car average, or $0 for "none") is used.
+    const customVal = customTransportInput.value;
+    if (customVal) return Number(customVal);
+
+    if (transportModeSelect.value === "transit" && transitPlanSelect.value) {
+      return Number(transitPlanSelect.value);
+    }
+    return null;
+  }
+
+  function buildPreviewPayload() {
+    if (!regionSelect.value) return null;
+    const payload = {
+      region_id: Number(regionSelect.value),
+      bedroom_type: bedroomSelect.value,
+      transportation_mode: transportModeSelect.value,
+    };
+    if (customGroceriesInput.value) payload.custom_groceries = Number(customGroceriesInput.value);
+    const transportOverride = getTransportationOverride();
+    if (transportOverride !== null) payload.custom_transportation_cost = transportOverride;
+    return payload;
+  }
+
+  function schedulePreview() {
+    clearTimeout(previewDebounce);
+    previewDebounce = setTimeout(runPreview, 300);
+  }
+
+  async function runPreview() {
+    const payload = buildPreviewPayload();
+    if (!payload) {
+      previewStrip.classList.add("hidden");
+      previewHint.classList.remove("hidden");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/affordability/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        previewStrip.classList.add("hidden");
+        previewHint.textContent = data.detail || "No data available for this city/unit type yet.";
+        previewHint.classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("preview-rent").textContent = money(data.estimated_rent);
+      document.getElementById("preview-groceries").textContent = money(data.estimated_groceries) + (data.groceries_is_estimate ? " *" : "");
+      document.getElementById("preview-transport").textContent = money(data.estimated_transportation) + (data.transportation_is_estimate ? " *" : "");
+
+      previewStrip.classList.remove("hidden");
+      previewHint.textContent = "* estimated. Enter your own number above to replace it";
+      previewHint.classList.remove("hidden");
+    } catch (err) {
+      previewStrip.classList.add("hidden");
+      previewHint.textContent = "Can't reach the backend. Is uvicorn running on port 8000?";
+      previewHint.classList.remove("hidden");
+    }
+  }
+
+  [regionSelect, bedroomSelect, transportModeSelect, transitPlanSelect].forEach(el =>
+    el.addEventListener("change", () => { updateTransportFieldsVisibility(); schedulePreview(); })
+  );
+  [customGroceriesInput, customTransportInput].forEach(el =>
+    el.addEventListener("input", schedulePreview)
+  );
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     statusLine.textContent = "";
-    stamp.classList.remove("animate");
-    stamp.style.opacity = 0;
+    verdictCard.classList.remove("animate");
 
     const payload = {
       region_id: Number(regionSelect.value),
-      bedroom_type: document.getElementById("bedroom").value,
+      bedroom_type: bedroomSelect.value,
       monthly_income: Number(document.getElementById("income").value),
       current_savings: Number(document.getElementById("savings").value || 0),
       monthly_extra_expenses: Number(document.getElementById("extra").value || 0),
-      transportation_mode: document.getElementById("transport-mode").value,
+      transportation_mode: transportModeSelect.value,
     };
     const goalVal = document.getElementById("goal").value;
     if (goalVal) payload.savings_goal = Number(goalVal);
-
-    const customGroceries = document.getElementById("custom-groceries").value;
-    if (customGroceries) payload.custom_groceries = Number(customGroceries);
-
-    const customTransport = document.getElementById("custom-transport").value;
-    if (customTransport) payload.custom_transportation_cost = Number(customTransport);
+    if (customGroceriesInput.value) payload.custom_groceries = Number(customGroceriesInput.value);
+    const transportOverride = getTransportationOverride();
+    if (transportOverride !== null) payload.custom_transportation_cost = transportOverride;
 
     try {
       const res = await fetch(`${API_BASE}/affordability/calculate`, {
@@ -165,21 +388,25 @@
         return;
       }
 
-      // Remember this city for other pages.
       const selectedOption = regionSelect.options[regionSelect.selectedIndex];
       setSelectedRegion(payload.region_id, selectedOption.textContent);
 
       renderResult(data);
     } catch (err) {
-      statusLine.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
+      statusLine.textContent = "Can't reach the backend. Is uvicorn running on port 8000?";
     }
   });
+
+  let breakdownChart = null;
 
   function renderResult(data) {
     animateMoney(document.getElementById("row-rent"), data.estimated_rent);
     animateMoney(document.getElementById("row-groceries"), data.estimated_groceries);
     animateMoney(document.getElementById("row-transit"), data.estimated_transportation);
     animateMoney(document.getElementById("row-total"), data.total_monthly_expenses);
+
+    document.getElementById("tag-groceries").classList.toggle("hidden", !data.groceries_is_estimate);
+    document.getElementById("tag-transport").classList.toggle("hidden", !data.transportation_is_estimate);
 
     const surplusRow = document.getElementById("row-surplus-wrap");
     const surplusVal = document.getElementById("row-surplus");
@@ -202,71 +429,121 @@
       notesBlock.style.display = "none";
     }
 
-    stamp.textContent = data.is_currently_affordable ? "Affordable" : "Over budget";
-    stamp.className = "stamp " + (data.is_currently_affordable ? "affordable" : "over");
+    renderBreakdownChart(data);
+    renderVerdictCard(data);
+    renderMathExplainer(data);
 
     ledger.classList.remove("hidden");
-    void stamp.offsetWidth;
-    stamp.classList.add("animate");
   }
 
-  loadRegions();
+  function renderBreakdownChart(data) {
+    const otherExpenses = Number(document.getElementById("extra").value || 0);
+    const ctx = document.getElementById("breakdown-chart").getContext("2d");
 
-  // ---------- Live entry log (real-time tape) ----------
-  const tapeLines = document.getElementById("tape-lines");
-  let totalLine = null;
+    const slices = [
+      { label: "Rent", value: data.estimated_rent, color: "#2dd4bf" },
+      { label: "Groceries", value: data.estimated_groceries, color: "#5eead4" },
+      { label: "Transportation", value: data.estimated_transportation, color: "#115e59" },
+      { label: "Other", value: otherExpenses, color: "#94a3b8" },
+    ].filter(s => s.value > 0);
 
-  function printTapeLine(text) {
-    const line = document.createElement("div");
-    line.textContent = text;
-    tapeLines.appendChild(line);
-    tapeLines.scrollTop = tapeLines.scrollHeight;
-  }
-
-  function updateQuickBalance() {
-    const income = Number(document.getElementById("income").value || 0);
-    const extra = Number(document.getElementById("extra").value || 0);
-    if (!income) return;
-
-    if (!totalLine) {
-      totalLine = document.createElement("div");
-      totalLine.className = "tape-total";
-      tapeLines.appendChild(totalLine);
+    if (data.monthly_surplus >= 0) {
+      slices.push({ label: "Left over", value: data.monthly_surplus, color: "#1d2d47" });
+    } else {
+      slices.push({ label: "Shortfall", value: Math.abs(data.monthly_surplus), color: "#f87171" });
     }
-    totalLine.textContent = `QUICK CHECK — income minus extras: ${money(income - extra)}`;
-    tapeLines.scrollTop = tapeLines.scrollHeight;
+
+    if (breakdownChart) breakdownChart.destroy();
+    breakdownChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: slices.map(s => s.label),
+        datasets: [{
+          data: slices.map(s => s.value),
+          backgroundColor: slices.map(s => s.color),
+          borderColor: "#16233a",
+          borderWidth: 2,
+        }],
+      },
+      options: {
+        responsive: true,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: "#b8c2cf", boxWidth: 12, font: { size: 11 } },
+          },
+          tooltip: {
+            callbacks: { label: (ctx) => `${ctx.label}: ${money(ctx.parsed)}` },
+          },
+        },
+      },
+    });
   }
 
-  document.getElementById("region").addEventListener("change", (e) => {
-    printTapeLine(`> City set to ${e.target.options[e.target.selectedIndex].textContent}`);
-  });
-  document.getElementById("bedroom").addEventListener("change", (e) => {
-    printTapeLine(`> Unit type: ${e.target.value}`);
-  });
-  document.getElementById("income").addEventListener("change", (e) => {
-    printTapeLine(`> Monthly income: ${money(Number(e.target.value || 0))}`);
-    updateQuickBalance();
-  });
-  document.getElementById("extra").addEventListener("change", (e) => {
-    printTapeLine(`> Other expenses: ${money(Number(e.target.value || 0))}`);
-    updateQuickBalance();
-  });
-  document.getElementById("savings").addEventListener("change", (e) => {
-    printTapeLine(`> Current savings: ${money(Number(e.target.value || 0))}`);
-  });
-  document.getElementById("goal").addEventListener("change", (e) => {
-    if (e.target.value) printTapeLine(`> Savings goal: ${money(Number(e.target.value))}`);
-  });
-  document.getElementById("custom-groceries").addEventListener("change", (e) => {
-    if (e.target.value) printTapeLine(`> Groceries override: ${money(Number(e.target.value))}`);
-  });
-  document.getElementById("transport-mode").addEventListener("change", (e) => {
-    printTapeLine(`> Transportation mode: ${e.target.options[e.target.selectedIndex].textContent}`);
-  });
-  document.getElementById("custom-transport").addEventListener("change", (e) => {
-    if (e.target.value) printTapeLine(`> Transportation override: ${money(Number(e.target.value))}`);
+  function renderMathExplainer(data) {
+    const income = Number(document.getElementById("income").value || 0);
+    const other = Number(document.getElementById("extra").value || 0);
+    const goalInput = document.getElementById("goal").value;
+    const explainer = document.getElementById("math-explainer");
+
+    let html = `
+      <strong>How we got this:</strong> ${money(income)} income
+      − (${money(data.estimated_rent)} rent + ${money(data.estimated_groceries)} groceries
+      + ${money(data.estimated_transportation)} transportation + ${money(other)} other)
+      = <strong>${money(data.monthly_surplus)}</strong> left over each month.
+    `;
+
+    if (data.is_currently_affordable) {
+      html += ` Since that's $0 or more, this is marked <strong>Affordable</strong>. That means your income covers your monthly bills, with room to spare.`;
+    } else {
+      html += ` Since that's below $0, this is marked <strong>Over budget</strong>. Your estimated monthly bills cost more than your income.`;
+    }
+
+    if (goalInput) {
+      html += ` <br><br>Your <strong>${money(Number(goalInput))} savings goal</strong> is separate from the affordability check above. It's a total amount to save up, not a monthly one.`;
+      if (data.months_to_goal !== null && data.months_to_goal !== undefined) {
+        html += ` At ${money(data.monthly_surplus)}/month, it'd take about <strong>${data.months_to_goal} months</strong> to reach it.`;
+      } else {
+        html += ` With no monthly surplus, there's currently nothing going toward it.`;
+      }
+    }
+
+    explainer.innerHTML = html;
+  }
+
+  function renderVerdictCard(data) {
+    verdictCard.classList.remove("animate");
+    void verdictCard.offsetWidth;
+
+    if (data.is_currently_affordable) {
+      verdictCard.className = "verdict-card affordable";
+      verdictIcon.textContent = "✓";
+      verdictTitle.textContent = "Affordable";
+      verdictDetail.textContent = `You'd have ${money(data.monthly_surplus)} left over each month.`;
+    } else {
+      verdictCard.className = "verdict-card over";
+      verdictIcon.textContent = "!";
+      verdictTitle.textContent = "Over budget";
+      verdictDetail.textContent = `You'd be ${money(Math.abs(data.monthly_surplus))} short each month.`;
+    }
+
+    verdictCard.classList.add("animate");
+  }
+
+  resetBtn.addEventListener("click", () => {
+    form.reset();
+    form.classList.remove("hidden");
+    ledger.classList.add("hidden");
+    statusLine.textContent = "";
+    updateTransportFieldsVisibility();
+    schedulePreview();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
+  updateTransportFieldsVisibility();
+  loadRegions();
+  loadTransitPlans();
 </script>
 
 </body>

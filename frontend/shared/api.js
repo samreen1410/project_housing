@@ -7,6 +7,12 @@ async function fetchRegions() {
   return res.json();
 }
 
+async function fetchTransitPlans() {
+  const res = await fetch(`${API_BASE}/transit-fares/`);
+  if (!res.ok) throw new Error("Could not reach the transit-fares endpoint");
+  return res.json();
+}
+
 function money(value) {
   return "$" + Number(value).toLocaleString("en-CA", {
     minimumFractionDigits: 2,

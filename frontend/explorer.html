@@ -1,99 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rent Explorer — Vancouver Housing Tool</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="shared/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <style>
-        #map-container {
-            height: 380px;
-            border-radius: 4px;
-            border: 1px solid var(--rule-faint);
-            margin-top: 10px;
-        }
-        .map-legend {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.75rem;
-            color: var(--ink-soft);
-            margin-top: 8px;
-        }
-        .map-legend .gradient-bar {
-            flex: 1;
-            height: 8px;
-            border-radius: 4px;
-            background: linear-gradient(to right, #2f6b34, #a3372b);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rent Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/theme.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  #map-container {
+    height: 380px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    background: var(--sky-deep);
+  }
+  /* Dark-styled map: invert the free OpenStreetMap tiles so the basemap
+     matches the site's dark theme, without needing a paid/key-gated
+     tile provider. Only the tile images are inverted, not markers or
+     popups, which live in separate Leaflet panes. */
+  #map-container .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.6);
+  }
+  #map-container .leaflet-popup-content-wrapper,
+  #map-container .leaflet-popup-tip {
+    background: var(--surface-raised);
+    color: var(--ink);
+  }
+  .map-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .map-legend .gradient-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #2dd4bf, #f87171);
+  }
+  .chart-canvas-box {
+    position: relative;
+    height: 440px;
+    width: 100%;
+  }
+  .mode-description {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: -14px 0 24px;
+    line-height: 1.6;
+  }
+  .ledger-row.linkable { cursor: pointer; }
+  .ledger-row.linkable:hover {
+    background: var(--surface-raised);
+    outline: 1.5px solid var(--teal);
+    outline-offset: -1px;
+  }
+  .ledger-row.linked-hover {
+    background: var(--surface-raised) !important;
+    outline: 1.5px solid var(--teal);
+    outline-offset: -1px;
+    cursor: pointer;
+  }
+  .chart-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    gap: 8px;
+  }
+  .chart-hint {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    opacity: 0.8;
+  }
+  .zoom-controls {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .reset-zoom-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: var(--teal);
+    background: transparent;
+    border: 1px solid var(--teal);
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .reset-zoom-btn:hover { background: var(--teal-soft); }
+</style>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
-<nav class="site-nav" id="site-nav"></nav>
 
-<div class="tear-strip"></div>
-<div class="sheet">
-    <div class="fastener"></div>
-    <header class="report-head">
+<div class="page-card">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
         <h1>Rent Explorer</h1>
-        <span class="report-no">No. 0002</span>
-    </header>
+        <p class="tagline">Browse real rent data by city, unit type, and more.</p>
+      </div>
+      <nav class="site-nav" id="site-nav"></nav>
+    </div>
+    <svg class="skyline" viewBox="0 0 1200 185" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="horizonGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.22"/>
+        </linearGradient>
+        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1f3b52" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#0a1420" stop-opacity="0.95"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="185" fill="url(#horizonGlow)"/>
+      <polygon points="0,160 0,100 90,60 180,95 270,45 360,85 450,35 540,80 630,50 720,90 810,55 900,95 990,65 1080,100 1170,75 1200,90 1200,160" fill="#2a4766" opacity="0.75"/>
+      <polygon points="0,160 0,125 100,85 200,115 300,80 400,110 500,75 600,105 700,80 800,120 900,90 1000,120 1100,95 1200,120 1200,160" fill="#1c2f4a"/>
+      <g fill="#060b12">
+        <rect x="30" y="110" width="22" height="50"/>
+        <rect x="60" y="95" width="16" height="65"/>
+        <rect x="85" y="118" width="24" height="42"/>
+        <rect x="150" y="100" width="20" height="60"/>
+        <rect x="180" y="115" width="18" height="45"/>
+        <rect x="260" y="90" width="24" height="70"/>
+        <rect x="300" y="112" width="16" height="48"/>
+        <rect x="420" y="100" width="20" height="60"/>
+        <rect x="460" y="118" width="22" height="42"/>
+        <rect x="560" y="92" width="18" height="68"/>
+        <rect x="600" y="110" width="24" height="50"/>
+        <rect x="700" y="100" width="20" height="60"/>
+        <rect x="740" y="118" width="16" height="42"/>
+        <rect x="860" y="95" width="22" height="65"/>
+        <rect x="900" y="112" width="18" height="48"/>
+        <rect x="1000" y="105" width="20" height="55"/>
+        <rect x="1040" y="120" width="24" height="40"/>
+        <rect x="1120" y="98" width="18" height="62"/>
+      </g>
+      <g fill="#2dd4bf">
+        <rect class="twinkle d1" x="38" y="122" width="5" height="5"/>
+        <rect class="twinkle d2" x="66" y="108" width="5" height="5"/>
+        <rect class="twinkle d3" x="158" y="112" width="5" height="5"/>
+        <rect class="twinkle d4" x="268" y="102" width="5" height="5"/>
+        <rect class="twinkle d5" x="428" y="112" width="5" height="5"/>
+        <rect class="twinkle d6" x="568" y="104" width="5" height="5"/>
+        <rect class="twinkle d7" x="708" y="112" width="5" height="5"/>
+        <rect class="twinkle d8" x="868" y="106" width="5" height="5"/>
+        <rect class="twinkle d2" x="1008" y="116" width="5" height="5"/>
+        <rect class="twinkle d5" x="1128" y="110" width="5" height="5"/>
+      </g>
+      <rect x="0" y="153" width="1200" height="32" fill="url(#waterGrad)"/>
+      <g stroke="#2dd4bf" stroke-opacity="0.18" stroke-width="1">
+        <line x1="40" y1="162" x2="90" y2="162"/>
+        <line x1="140" y1="168" x2="200" y2="168"/>
+        <line x1="260" y1="160" x2="310" y2="160"/>
+        <line x1="420" y1="170" x2="470" y2="170"/>
+        <line x1="560" y1="163" x2="610" y2="163"/>
+        <line x1="700" y1="169" x2="750" y2="169"/>
+        <line x1="860" y1="161" x2="910" y2="161"/>
+        <line x1="1000" y1="167" x2="1050" y2="167"/>
+        <line x1="1120" y1="162" x2="1170" y2="162"/>
+      </g>
+      <g fill="#2dd4bf" opacity="0.14">
+        <rect x="37" y="160" width="6" height="15"/>
+        <rect x="157" y="160" width="6" height="13"/>
+        <rect x="427" y="160" width="6" height="15"/>
+        <rect x="567" y="160" width="6" height="13"/>
+        <rect x="707" y="160" width="6" height="15"/>
+        <rect x="867" y="160" width="6" height="13"/>
+        <rect x="1007" y="160" width="6" height="15"/>
+      </g>
+      <rect x="0" y="179" width="1200" height="6" fill="#8a8169" opacity="0.85"/>
+    </svg>
+  </header>
 
-    <div class="field-block">
-        <div class="field">
-            <label for="mode">View</label>
-            <select id="mode">
-                <option value="single">One city, all unit types</option>
-                <option value="compare">Compare cities (chart)</option>
-                <option value="map">Compare cities (map)</option>
-            </select>
-        </div>
-
-        <div class="field" id="city-field">
-            <label for="city-select">City</label>
-            <select id="city-select"></select>
-        </div>
-
-        <div class="field" id="bedroom-field" style="display:none;">
-            <label for="bedroom-select">Unit type to compare</label>
-            <select id="bedroom-select">
-                <option value="Studio">Studio</option>
-                <option value="1 Bedroom" selected>1 Bedroom</option>
-                <option value="2 Bedroom">2 Bedroom</option>
-                <option value="3 Bedroom +">3 Bedroom +</option>
-            </select>
-        </div>
+  <div class="sheet">
+  <div class="field-block">
+    <div class="field">
+      <label for="mode">View</label>
+      <select id="mode">
+        <option value="single">One city, all unit types</option>
+        <option value="compare">Compare cities by rent</option>
+        <option value="map">Compare cities on a map</option>
+        <option value="allTypes">All unit types, every city</option>
+      </select>
     </div>
 
-    <p class="status-line" id="status"></p>
-
-    <div id="chart-wrap" style="margin-top: 10px;">
-        <canvas id="rent-chart" height="220"></canvas>
+    <div class="field" id="city-field">
+      <label for="city-select">City</label>
+      <select id="city-select"></select>
     </div>
 
-    <div id="map-container" class="hidden"></div>
-    <div class="map-legend hidden" id="map-legend">
-        <span>Cheaper</span>
-        <div class="gradient-bar"></div>
-        <span>Pricier</span>
+    <div class="field" id="bedroom-field" style="display:none;">
+      <label for="bedroom-select">Unit type to compare</label>
+      <select id="bedroom-select">
+        <option value="Studio">Studio</option>
+        <option value="1 Bedroom" selected>1 Bedroom</option>
+        <option value="2 Bedroom">2 Bedroom</option>
+        <option value="3 Bedroom +">3 Bedroom +</option>
+      </select>
     </div>
+  </div>
 
-    <section class="ledger" id="ledger-table" style="margin-top: 26px;"></section>
+  <p class="mode-description" id="mode-description"></p>
 
-    <div id="calc-link-wrap" style="margin-top: 26px; display:none;">
-        <button class="primary-btn" id="go-to-calculator">Check affordability in this city</button>
+  <p class="status-line" id="status"></p>
+
+  <div id="chart-wrap" style="margin-top: 10px;">
+    <div class="chart-canvas-box">
+      <canvas id="rent-chart"></canvas>
     </div>
+    <div class="chart-toolbar">
+      <span class="chart-hint" id="chart-hint"></span>
+      <div class="zoom-controls hidden" id="zoom-controls">
+        <button class="reset-zoom-btn" id="pan-left-btn" title="Move left">←</button>
+        <button class="reset-zoom-btn" id="zoom-out-btn" title="Zoom out">−</button>
+        <button class="reset-zoom-btn" id="zoom-in-btn" title="Zoom in">+</button>
+        <button class="reset-zoom-btn" id="pan-right-btn" title="Move right">→</button>
+        <button class="reset-zoom-btn" id="reset-zoom-btn">Reset</button>
+      </div>
+    </div>
+  </div>
 
-    <footer class="report-foot">
-        Data: CMHC Rental Market Survey, by bedroom type and city · Map tiles © OpenStreetMap contributors
-    </footer>
+  <div id="map-container" class="hidden"></div>
+  <div class="map-legend hidden" id="map-legend">
+    <span>Cheaper</span>
+    <div class="gradient-bar"></div>
+    <span>Pricier</span>
+  </div>
+
+  <section class="ledger" id="ledger-table" style="margin-top: 26px;"></section>
+
+  <div id="calc-link-wrap" style="margin-top: 26px; display:none;">
+    <button class="primary-btn" id="go-to-calculator">Check affordability in this city</button>
+  </div>
+
+  <footer class="report-foot">
+    Data: CMHC Rental Market Survey, by bedroom type and city. Map tiles © OpenStreetMap contributors
+  </footer>
+  </div>
 </div>
 
 <script src="shared/background.js"></script>
@@ -101,257 +253,573 @@
 <script src="shared/state.js"></script>
 <script src="shared/nav.js"></script>
 <script>
-    const modeSelect = document.getElementById("mode");
-    const cityField = document.getElementById("city-field");
-    const bedroomField = document.getElementById("bedroom-field");
-    const citySelect = document.getElementById("city-select");
-    const bedroomSelect = document.getElementById("bedroom-select");
-    const status = document.getElementById("status");
-    const ledgerTable = document.getElementById("ledger-table");
-    const calcLinkWrap = document.getElementById("calc-link-wrap");
-    const chartWrap = document.getElementById("chart-wrap");
-    const mapContainer = document.getElementById("map-container");
-    const mapLegend = document.getElementById("map-legend");
+  const modeSelect = document.getElementById("mode");
+  const cityField = document.getElementById("city-field");
+  const bedroomField = document.getElementById("bedroom-field");
+  const citySelect = document.getElementById("city-select");
+  const bedroomSelect = document.getElementById("bedroom-select");
+  const status = document.getElementById("status");
+  const ledgerTable = document.getElementById("ledger-table");
+  const calcLinkWrap = document.getElementById("calc-link-wrap");
+  const chartWrap = document.getElementById("chart-wrap");
+  const mapContainer = document.getElementById("map-container");
+  const mapLegend = document.getElementById("map-legend");
+  const modeDescription = document.getElementById("mode-description");
+  const chartHint = document.getElementById("chart-hint");
+  const zoomControls = document.getElementById("zoom-controls");
+  const resetZoomBtn = document.getElementById("reset-zoom-btn");
+  const zoomInBtn = document.getElementById("zoom-in-btn");
+  const zoomOutBtn = document.getElementById("zoom-out-btn");
 
-    let regions = [];
-    let chart = null;
-    let map = null;
-    let markers = [];
+  // (no external zoom plugin needed - zoom/pan is implemented manually below,
+  // directly controlling the x-axis category range for predictable behavior)
 
-    const CHART_GREEN = "#2f6b34";
-    const CHART_GREEN_SOFT = "#9fc191";
+  let regions = [];
+  let chart = null;
+  let map = null;
+  let markers = [];
 
-    // Approximate city-centre coordinates for the map view.
-    const CITY_COORDS = {
-        "Vancouver": [49.2827, -123.1207],
-        "Burnaby": [49.2488, -122.9805],
-        "Surrey": [49.1913, -122.8490],
-        "Richmond": [49.1666, -123.1336],
-        "Coquitlam": [49.2838, -122.7932],
-        "New Westminster": [49.2057, -122.9110],
-        "North Vancouver": [49.3200, -123.0724],
-        "West Vancouver": [49.3287, -123.1596],
-    };
+  const CHART_TEAL = "#2dd4bf";
+  const CHART_TEAL_SOFT = "rgba(45, 212, 191, 0.35)";
+  const CHART_TEXT = "#b8c2cf";
+  const CHART_GRID = "rgba(148, 163, 184, 0.12)";
+  const BEDROOM_COLORS = {
+    "Studio": "#2dd4bf",
+    "1 Bedroom": "#5eead4",
+    "2 Bedroom": "#0d9488",
+    "3 Bedroom +": "#134e4a",
+  };
 
-    function hexToRgb(hex) {
-        const v = parseInt(hex.replace("#", ""), 16);
-        return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
-    }
-    function lerpColor(hexA, hexB, t) {
-        const a = hexToRgb(hexA), b = hexToRgb(hexB);
-        const r = Math.round(a.r + (b.r - a.r) * t);
-        const g = Math.round(a.g + (b.g - a.g) * t);
-        const bl = Math.round(a.b + (b.b - a.b) * t);
-        return `rgb(${r}, ${g}, ${bl})`;
-    }
+  const MODE_DESCRIPTIONS = {
+    single: "See every unit type's average rent in one city, from studios to three bedroom plus.",
+    compare: "Compare one unit type's average rent across every city we track, ranked cheapest to priciest.",
+    map: "The same city comparison, placed on a map. Bigger and redder bubbles cost more.",
+    vacancy: "See how many vacant units each city reported, by unit type. A higher rate usually means it's easier to find a place.",
+    allTypes: "Compare every unit type across every city at once, grouped by city.",
+  };
 
-    function renderChart(labels, values, label) {
-        const ctx = document.getElementById("rent-chart").getContext("2d");
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels,
-                datasets: [{
-                    label,
-                    data: values,
-                    backgroundColor: CHART_GREEN_SOFT,
-                    borderColor: CHART_GREEN,
-                    borderWidth: 1.5,
-                    borderRadius: 3,
-                }],
+  const CITY_COORDS = {
+    "Vancouver": [49.2827, -123.1207],
+    "Burnaby": [49.2488, -122.9805],
+    "Surrey": [49.1913, -122.8490],
+    "Richmond": [49.1666, -123.1336],
+    "Coquitlam": [49.2838, -122.7932],
+    "New Westminster": [49.2057, -122.9110],
+    "North Vancouver": [49.3200, -123.0724],
+    "West Vancouver": [49.3287, -123.1596],
+  };
+
+  function hexToRgb(hex) {
+    const v = parseInt(hex.replace("#", ""), 16);
+    return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
+  }
+  function lerpColor(hexA, hexB, t) {
+    const a = hexToRgb(hexA), b = hexToRgb(hexB);
+    const r = Math.round(a.r + (b.r - a.r) * t);
+    const g = Math.round(a.g + (b.g - a.g) * t);
+    const bl = Math.round(a.b + (b.b - a.b) * t);
+    return `rgb(${r}, ${g}, ${bl})`;
+  }
+
+  function destroyChart() {
+    if (chart) { chart.destroy(); chart = null; }
+  }
+
+  // Manual zoom/pan for category-axis bar charts: directly narrows or
+  // shifts the visible range of category indices. Implemented by hand
+  // rather than relying on the zoom plugin's wheel/drag zoom, which
+  // misbehaved on category axes (it would zoom lopsidedly toward one
+  // end instead of the center).
+  function getXRange() {
+    const scale = chart.scales.x;
+    const lastIndex = chart.data.labels.length - 1;
+    const min = scale.min ?? 0;
+    const max = scale.max ?? lastIndex;
+    return { min, max, lastIndex };
+  }
+
+  function setXRange(min, max) {
+    chart.options.scales.x.min = min;
+    chart.options.scales.x.max = max;
+    chart.update();
+  }
+
+  function zoomInChart() {
+    if (!chart) return;
+    const { min, max, lastIndex } = getXRange();
+    const range = max - min;
+    const newRange = Math.max(1, Math.floor(range * 0.65));
+    if (newRange >= range) return; // already as zoomed as it can usefully go
+    const center = (min + max) / 2;
+    let newMin = Math.round(center - newRange / 2);
+    let newMax = newMin + newRange;
+    if (newMin < 0) { newMax -= newMin; newMin = 0; }
+    if (newMax > lastIndex) { newMin -= (newMax - lastIndex); newMax = lastIndex; }
+    setXRange(Math.max(0, newMin), Math.min(lastIndex, newMax));
+  }
+
+  function zoomOutChart() {
+    if (!chart) return;
+    const { min, max, lastIndex } = getXRange();
+    const range = max - min;
+    const newRange = Math.min(lastIndex, Math.ceil(range / 0.65));
+    const center = (min + max) / 2;
+    let newMin = Math.round(center - newRange / 2);
+    let newMax = newMin + newRange;
+    if (newMin < 0) { newMax -= newMin; newMin = 0; }
+    if (newMax > lastIndex) { newMin -= (newMax - lastIndex); newMax = lastIndex; }
+    setXRange(Math.max(0, newMin), Math.min(lastIndex, newMax));
+  }
+
+  function panChart(direction) {
+    if (!chart) return;
+    const { min, max, lastIndex } = getXRange();
+    const range = max - min;
+    const shift = Math.max(1, Math.round(range * 0.4)) * direction;
+    let newMin = min + shift;
+    let newMax = max + shift;
+    if (newMin < 0) { newMax -= newMin; newMin = 0; }
+    if (newMax > lastIndex) { newMin -= (newMax - lastIndex); newMax = lastIndex; }
+    setXRange(Math.max(0, newMin), Math.min(lastIndex, newMax));
+  }
+
+  function resetChartZoom() {
+    if (!chart) return;
+    delete chart.options.scales.x.min;
+    delete chart.options.scales.x.max;
+    chart.update();
+  }
+
+  function showZoomControls(enabled) {
+    zoomControls.classList.toggle("hidden", !enabled);
+    chartHint.textContent = enabled
+      ? "Use the arrows and +/- to zoom and move across the chart. Hover a bar or row to link them. Click a bar to jump to that view."
+      : "";
+  }
+
+  function clearRowHighlight() {
+    ledgerTable.querySelectorAll(".ledger-row").forEach(row => row.classList.remove("linked-hover"));
+  }
+
+  // Chart.js doesn't reliably fire onHover with an empty element list when
+  // the mouse leaves the canvas directly into another element (like the
+  // table below), so the last highlighted row could get stuck. Clearing
+  // it explicitly on canvas mouseleave fixes that regardless of how the
+  // mouse exits.
+  document.getElementById("rent-chart").addEventListener("mouseleave", clearRowHighlight);
+
+  function highlightRow(index) {
+    clearRowHighlight();
+    const row = ledgerTable.querySelector(`[data-index="${index}"]`);
+    if (row) row.classList.add("linked-hover");
+  }
+
+  function renderBarChart(labels, values, label, formatAsPercent, onBarClick) {
+    const ctx = document.getElementById("rent-chart").getContext("2d");
+    destroyChart();
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label,
+          data: values,
+          backgroundColor: CHART_TEAL_SOFT,
+          borderColor: CHART_TEAL,
+          borderWidth: 1.5,
+          borderRadius: 3,
+          hoverBackgroundColor: CHART_TEAL,
+          hoverBorderColor: "#eef2f6",
+          hoverBorderWidth: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? "pointer" : "default";
+          if (elements.length) highlightRow(elements[0].index); else clearRowHighlight();
+        },
+        onClick: (evt, elements) => {
+          if (elements.length && onBarClick) onBarClick(elements[0].index);
+        },
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (v) => formatAsPercent ? v + "%" : "$" + v.toLocaleString(),
+              color: CHART_TEXT,
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: (v) => "$" + v.toLocaleString() },
-                        grid: { color: "rgba(74,90,67,0.08)" },
-                    },
-                    x: { grid: { display: false } },
-                },
-            },
-        });
-    }
+            grid: { color: CHART_GRID },
+          },
+          x: { ticks: { color: CHART_TEXT }, grid: { display: false } },
+        },
+      },
+    });
+    showZoomControls(true);
+  }
 
-    function renderLedgerRows(rows) {
-        ledgerTable.innerHTML = rows
-            .map(r => `<div class="ledger-row"><span>${r.label}</span><span class="amount">${money(r.value)}</span></div>`)
-            .join("");
-    }
+  function renderPolarChart(labels, values, bedroomTypesInOrder, onSliceClick) {
+    const ctx = document.getElementById("rent-chart").getContext("2d");
+    destroyChart();
+    chart = new Chart(ctx, {
+      type: "polarArea",
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: bedroomTypesInOrder.map(b => BEDROOM_COLORS[b] + "cc"),
+          hoverBackgroundColor: bedroomTypesInOrder.map(b => BEDROOM_COLORS[b]),
+          borderColor: "#16233a",
+          borderWidth: 2,
+          hoverBorderColor: "#eef2f6",
+          hoverBorderWidth: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? "pointer" : "default";
+          if (elements.length) highlightRow(elements[0].index); else clearRowHighlight();
+        },
+        onClick: (evt, elements) => {
+          if (elements.length && onSliceClick) onSliceClick(bedroomTypesInOrder[elements[0].index]);
+        },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: CHART_TEXT, boxWidth: 12, font: { size: 11 } },
+          },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${money(ctx.raw)} (click to compare this unit type across cities)` } },
+        },
+        scales: {
+          r: {
+            ticks: { color: CHART_TEXT, backdropColor: "transparent", callback: (v) => "$" + v.toLocaleString() },
+            grid: { color: CHART_GRID },
+            angleLines: { color: CHART_GRID },
+          },
+        },
+      },
+    });
+    showZoomControls(false);
+    chartHint.textContent = "Hover a slice to highlight its row. Click a slice to compare that unit type across every city.";
+  }
 
-    function ensureMap() {
-        if (map) return;
-        map = L.map("map-container", { scrollWheelZoom: false }).setView([49.24, -123.05], 9.6);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors",
-            maxZoom: 18,
-        }).addTo(map);
+  function renderGroupedChart(cityLabels, bedroomTypesInOrder, dataByBedroom, onBarClick) {
+    const ctx = document.getElementById("rent-chart").getContext("2d");
+    destroyChart();
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: cityLabels,
+        datasets: bedroomTypesInOrder.map(bt => ({
+          label: bt,
+          data: dataByBedroom[bt],
+          backgroundColor: BEDROOM_COLORS[bt],
+          hoverBackgroundColor: BEDROOM_COLORS[bt],
+          borderRadius: 3,
+          borderColor: "transparent",
+          borderWidth: 2,
+          hoverBorderColor: "#eef2f6",
+          hoverBorderWidth: 3,
+        })),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? "pointer" : "default";
+        },
+        onClick: (evt, elements) => {
+          if (elements.length && onBarClick) {
+            const el = elements[0];
+            onBarClick(el.index, bedroomTypesInOrder[el.datasetIndex]);
+          }
+        },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: CHART_TEXT, boxWidth: 12, font: { size: 11 } },
+          },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${money(ctx.parsed.y)}` } },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: (v) => "$" + v.toLocaleString(), color: CHART_TEXT },
+            grid: { color: CHART_GRID },
+          },
+          x: { ticks: { color: CHART_TEXT }, grid: { display: false } },
+        },
+      },
+    });
+    showZoomControls(true);
+  }
 
-        window.addEventListener("resize", () => map.invalidateSize());
-    }
+  resetZoomBtn.addEventListener("click", resetChartZoom);
+  zoomInBtn.addEventListener("click", zoomInChart);
+  zoomOutBtn.addEventListener("click", zoomOutChart);
+  document.getElementById("pan-left-btn").addEventListener("click", () => panChart(-1));
+  document.getElementById("pan-right-btn").addEventListener("click", () => panChart(1));
 
-    function renderMap(rows, bedroomType) {
-        ensureMap();
-        markers.forEach(m => map.removeLayer(m));
-        markers = [];
+  function renderLedgerRows(rows, linkToChart) {
+    ledgerTable.innerHTML = rows
+      .map((r, i) => `<div class="ledger-row${linkToChart ? ' linkable' : ''}" data-index="${i}"><span>${r.label}</span><span class="amount">${r.value}</span></div>`)
+      .join("");
 
-        const rents = rows.map(r => r.avg_rent);
-        const min = Math.min(...rents);
-        const max = Math.max(...rents);
+    if (!linkToChart) return;
 
-        rows.forEach(r => {
-            const coords = CITY_COORDS[r.region_name];
-            if (!coords) return;
-            const t = max === min ? 0 : (r.avg_rent - min) / (max - min);
-            const color = lerpColor("#2f6b34", "#a3372b", t);
-            const radius = 10 + t * 16;
+    ledgerTable.querySelectorAll(".ledger-row").forEach(row => {
+      const index = Number(row.dataset.index);
+      row.addEventListener("mouseenter", () => {
+        clearRowHighlight();
+        if (!chart) return;
+        const elements = [{ datasetIndex: 0, index }];
+        chart.setActiveElements(elements);
+        if (chart.tooltip) chart.tooltip.setActiveElements(elements, { x: 0, y: 0 });
+        chart.update();
+      });
+      row.addEventListener("mouseleave", () => {
+        if (!chart) return;
+        chart.setActiveElements([]);
+        if (chart.tooltip) chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+        chart.update();
+      });
+    });
+  }
 
-            const marker = L.circleMarker(coords, {
-                radius,
-                fillColor: color,
-                color: "#1c2a17",
-                weight: 1,
-                fillOpacity: 0.85,
-            })
-                .addTo(map)
-                .bindPopup(`<strong>${r.region_name}</strong><br>${bedroomType}: ${money(r.avg_rent)}`);
+  function ensureMap() {
+    if (map) return;
+    map = L.map("map-container", { scrollWheelZoom: false }).setView([49.24, -123.05], 9.6);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 18,
+    }).addTo(map);
+    window.addEventListener("resize", () => map.invalidateSize());
+  }
 
-            marker.on("click", () => {
-                modeSelect.value = "single";
-                citySelect.value = r.region_id;
-                refresh();
-            });
+  function renderMap(rows, bedroomType) {
+    ensureMap();
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
 
-            markers.push(marker);
-        });
+    const rents = rows.map(r => r.avg_rent);
+    const min = Math.min(...rents);
+    const max = Math.max(...rents);
 
-        setTimeout(() => map.invalidateSize(), 60);
-        setTimeout(() => map.invalidateSize(), 300);
-    }
+    rows.forEach(r => {
+      const coords = CITY_COORDS[r.region_name];
+      if (!coords) return;
+      const t = max === min ? 0 : (r.avg_rent - min) / (max - min);
+      const color = lerpColor("#2dd4bf", "#f87171", t);
+      const radius = 10 + t * 16;
 
-    async function loadSingleCity(regionId) {
-        const res = await fetch(`${API_BASE}/rent-data/${regionId}`);
-        const data = await res.json();
+      const marker = L.circleMarker(coords, {
+        radius,
+        fillColor: color,
+        color: "#0a1420",
+        weight: 1,
+        fillOpacity: 0.9,
+      })
+        .addTo(map)
+        .bindPopup(`<strong>${r.region_name}</strong><br>${bedroomType}: ${money(r.avg_rent)}`);
 
-        if (!data.rents || !data.rents.length) {
-            status.textContent = `No rent data imported yet for ${data.region_name}.`;
-            if (chart) { chart.destroy(); chart = null; }
-            ledgerTable.innerHTML = "";
-            calcLinkWrap.style.display = "none";
-            return;
-        }
-        status.textContent = "";
+      marker.on("click", () => {
+        modeSelect.value = "single";
+        citySelect.value = r.region_id;
+        refresh();
+      });
 
-        const order = ["Studio", "1 Bedroom", "2 Bedroom", "3 Bedroom +", "Total"];
-        const sorted = [...data.rents].sort((a, b) => order.indexOf(a.bedroom_type) - order.indexOf(b.bedroom_type));
-
-        renderChart(sorted.map(r => r.bedroom_type), sorted.map(r => r.avg_rent), `${data.region_name} average rent`);
-        renderLedgerRows(sorted.map(r => ({ label: r.bedroom_type, value: r.avg_rent })));
-
-        calcLinkWrap.style.display = "block";
-        calcLinkWrap.dataset.regionId = data.region_id;
-        calcLinkWrap.dataset.regionName = data.region_name;
-    }
-
-    async function loadAllCitiesForBedroom(bedroomType) {
-        const res = await fetch(`${API_BASE}/rent-data/`);
-        const allRegions = await res.json();
-
-        return allRegions
-            .map(r => {
-                const match = r.rents.find(x => x.bedroom_type === bedroomType);
-                return match ? { region_name: r.region_name, avg_rent: match.avg_rent, region_id: r.region_id } : null;
-            })
-            .filter(Boolean)
-            .sort((a, b) => a.avg_rent - b.avg_rent);
-    }
-
-    async function loadCompareCities(bedroomType) {
-        const rows = await loadAllCitiesForBedroom(bedroomType);
-        if (!rows.length) {
-            status.textContent = `No cities have data for ${bedroomType} yet.`;
-            if (chart) { chart.destroy(); chart = null; }
-            ledgerTable.innerHTML = "";
-            calcLinkWrap.style.display = "none";
-            return;
-        }
-        status.textContent = "";
-        renderChart(rows.map(r => r.region_name), rows.map(r => r.avg_rent), `${bedroomType} average rent by city`);
-        renderLedgerRows(rows.map(r => ({ label: r.region_name, value: r.avg_rent })));
-        calcLinkWrap.style.display = "none";
-    }
-
-    async function loadMapCities(bedroomType) {
-        const rows = await loadAllCitiesForBedroom(bedroomType);
-        if (!rows.length) {
-            status.textContent = `No cities have data for ${bedroomType} yet.`;
-            ledgerTable.innerHTML = "";
-            calcLinkWrap.style.display = "none";
-            return;
-        }
-        status.textContent = "";
-        renderMap(rows, bedroomType);
-        renderLedgerRows(rows.map(r => ({ label: r.region_name, value: r.avg_rent })));
-        calcLinkWrap.style.display = "none";
-    }
-
-    function refresh() {
-        calcLinkWrap.style.display = "none";
-
-        if (modeSelect.value === "single") {
-            cityField.style.display = "flex";
-            bedroomField.style.display = "none";
-            chartWrap.classList.remove("hidden");
-            mapContainer.classList.add("hidden");
-            mapLegend.classList.add("hidden");
-            if (citySelect.value) loadSingleCity(citySelect.value);
-
-        } else if (modeSelect.value === "compare") {
-            cityField.style.display = "none";
-            bedroomField.style.display = "flex";
-            chartWrap.classList.remove("hidden");
-            mapContainer.classList.add("hidden");
-            mapLegend.classList.add("hidden");
-            loadCompareCities(bedroomSelect.value);
-
-        } else {
-            cityField.style.display = "none";
-            bedroomField.style.display = "flex";
-            chartWrap.classList.add("hidden");
-            mapContainer.classList.remove("hidden");
-            mapLegend.classList.remove("hidden");
-            loadMapCities(bedroomSelect.value);
-        }
-    }
-
-    async function init() {
-        try {
-            regions = await fetchRegions();
-            citySelect.innerHTML = regions.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
-
-            const selected = getSelectedRegion();
-            if (selected && regions.some(r => r.id === selected.id)) {
-                citySelect.value = selected.id;
-            }
-            refresh();
-        } catch (err) {
-            status.textContent = "Can't reach the backend — is uvicorn running on port 8000?";
-        }
-    }
-
-    modeSelect.addEventListener("change", refresh);
-    citySelect.addEventListener("change", refresh);
-    bedroomSelect.addEventListener("change", refresh);
-
-    document.getElementById("go-to-calculator").addEventListener("click", () => {
-        setSelectedRegion(calcLinkWrap.dataset.regionId, calcLinkWrap.dataset.regionName);
-        window.location.href = "calculator.html";
+      markers.push(marker);
     });
 
-    init();
+    setTimeout(() => map.invalidateSize(), 60);
+    setTimeout(() => map.invalidateSize(), 300);
+  }
+
+  async function loadSingleCity(regionId) {
+    const res = await fetch(`${API_BASE}/rent-data/${regionId}`);
+    const data = await res.json();
+
+    if (!data.rents || !data.rents.length) {
+      status.textContent = `No rent data imported yet for ${data.region_name}.`;
+      destroyChart();
+      ledgerTable.innerHTML = "";
+      calcLinkWrap.style.display = "none";
+      return;
+    }
+    status.textContent = "";
+
+    const order = ["Studio", "1 Bedroom", "2 Bedroom", "3 Bedroom +"];
+    const sorted = [...data.rents]
+      .filter(r => order.includes(r.bedroom_type))
+      .sort((a, b) => order.indexOf(a.bedroom_type) - order.indexOf(b.bedroom_type));
+
+    renderPolarChart(sorted.map(r => r.bedroom_type), sorted.map(r => r.avg_rent), sorted.map(r => r.bedroom_type), (bedroomType) => {
+      modeSelect.value = "compare";
+      bedroomSelect.value = bedroomType;
+      refresh();
+    });
+    renderLedgerRows(sorted.map(r => ({ label: r.bedroom_type, value: money(r.avg_rent) })), true);
+
+    calcLinkWrap.style.display = "block";
+    calcLinkWrap.dataset.regionId = data.region_id;
+    calcLinkWrap.dataset.regionName = data.region_name;
+  }
+
+  async function fetchAllRegionsRentData() {
+    const res = await fetch(`${API_BASE}/rent-data/`);
+    return res.json();
+  }
+
+  async function loadAllCitiesForBedroom(bedroomType) {
+    const allRegions = await fetchAllRegionsRentData();
+    return allRegions
+      .map(r => {
+        const match = r.rents.find(x => x.bedroom_type === bedroomType);
+        return match ? { region_name: r.region_name, avg_rent: match.avg_rent, vacancy_rate: match.vacancy_rate, region_id: r.region_id } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.avg_rent - b.avg_rent);
+  }
+
+  async function loadCompareCities(bedroomType) {
+    const rows = await loadAllCitiesForBedroom(bedroomType);
+    if (!rows.length) {
+      status.textContent = `No cities have data for ${bedroomType} yet.`;
+      destroyChart();
+      ledgerTable.innerHTML = "";
+      calcLinkWrap.style.display = "none";
+      return;
+    }
+    status.textContent = "";
+    renderBarChart(rows.map(r => r.region_name), rows.map(r => r.avg_rent), `${bedroomType} average rent by city`, false, (index) => {
+      modeSelect.value = "single";
+      citySelect.value = rows[index].region_id;
+      refresh();
+    });
+    renderLedgerRows(rows.map(r => ({ label: r.region_name, value: money(r.avg_rent) })), true);
+    calcLinkWrap.style.display = "none";
+  }
+
+  async function loadMapCities(bedroomType) {
+    const rows = await loadAllCitiesForBedroom(bedroomType);
+    if (!rows.length) {
+      status.textContent = `No cities have data for ${bedroomType} yet.`;
+      ledgerTable.innerHTML = "";
+      calcLinkWrap.style.display = "none";
+      return;
+    }
+    status.textContent = "";
+    renderMap(rows, bedroomType);
+    renderLedgerRows(rows.map(r => ({ label: r.region_name, value: money(r.avg_rent) })));
+    calcLinkWrap.style.display = "none";
+  }
+
+  async function loadVacancy(bedroomType) {
+    const rows = await loadAllCitiesForBedroom(bedroomType);
+    const withVacancy = rows.filter(r => r.vacancy_rate !== null && r.vacancy_rate !== undefined);
+
+    if (!withVacancy.length) {
+      status.textContent = `No vacancy rate data available for ${bedroomType} yet.`;
+      destroyChart();
+      ledgerTable.innerHTML = "";
+      calcLinkWrap.style.display = "none";
+      return;
+    }
+    status.textContent = "";
+    const sorted = [...withVacancy].sort((a, b) => b.vacancy_rate - a.vacancy_rate);
+    renderBarChart(sorted.map(r => r.region_name), sorted.map(r => r.vacancy_rate), `${bedroomType} vacancy rate by city`, true, (index) => {
+      modeSelect.value = "single";
+      citySelect.value = sorted[index].region_id;
+      refresh();
+    });
+    renderLedgerRows(sorted.map(r => ({ label: r.region_name, value: r.vacancy_rate + "%" })), true);
+    calcLinkWrap.style.display = "none";
+  }
+
+  async function loadAllTypes() {
+    const allRegions = await fetchAllRegionsRentData();
+    if (!allRegions.length) {
+      status.textContent = "No rent data imported yet.";
+      destroyChart();
+      ledgerTable.innerHTML = "";
+      calcLinkWrap.style.display = "none";
+      return;
+    }
+    status.textContent = "";
+
+    const order = ["Studio", "1 Bedroom", "2 Bedroom", "3 Bedroom +"];
+    const cityLabels = allRegions.map(r => r.region_name);
+    const dataByBedroom = {};
+    order.forEach(bt => {
+      dataByBedroom[bt] = allRegions.map(r => {
+        const match = r.rents.find(x => x.bedroom_type === bt);
+        return match ? match.avg_rent : null;
+      });
+    });
+
+    renderGroupedChart(cityLabels, order, dataByBedroom, (cityIndex) => {
+      modeSelect.value = "single";
+      citySelect.value = allRegions[cityIndex].region_id;
+      refresh();
+    });
+    ledgerTable.innerHTML = "";
+    calcLinkWrap.style.display = "none";
+  }
+
+  function refresh() {
+    calcLinkWrap.style.display = "none";
+    modeDescription.textContent = MODE_DESCRIPTIONS[modeSelect.value] || "";
+
+    cityField.style.display = modeSelect.value === "single" ? "flex" : "none";
+    bedroomField.style.display = ["compare", "map"].includes(modeSelect.value) ? "flex" : "none";
+    chartWrap.classList.toggle("hidden", modeSelect.value === "map");
+    mapContainer.classList.toggle("hidden", modeSelect.value !== "map");
+    mapLegend.classList.toggle("hidden", modeSelect.value !== "map");
+
+    if (modeSelect.value === "single") {
+      if (citySelect.value) loadSingleCity(citySelect.value);
+    } else if (modeSelect.value === "compare") {
+      loadCompareCities(bedroomSelect.value);
+    } else if (modeSelect.value === "map") {
+      loadMapCities(bedroomSelect.value);
+    } else if (modeSelect.value === "vacancy") {
+      loadVacancy(bedroomSelect.value);
+    } else if (modeSelect.value === "allTypes") {
+      loadAllTypes();
+    }
+  }
+
+  async function init() {
+    try {
+      regions = await fetchRegions();
+      citySelect.innerHTML = regions.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
+
+      const selected = getSelectedRegion();
+      if (selected && regions.some(r => r.id === selected.id)) {
+        citySelect.value = selected.id;
+      }
+      refresh();
+    } catch (err) {
+      status.textContent = "Can't reach the backend. Is uvicorn running on port 8000?";
+    }
+  }
+
+  modeSelect.addEventListener("change", refresh);
+  citySelect.addEventListener("change", refresh);
+  bedroomSelect.addEventListener("change", refresh);
+
+  document.getElementById("go-to-calculator").addEventListener("click", () => {
+    setSelectedRegion(calcLinkWrap.dataset.regionId, calcLinkWrap.dataset.regionName);
+    window.location.href = "calculator.html";
+  });
+
+  init();
 </script>
 
 </body>

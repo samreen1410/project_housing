@@ -1,6 +1,8 @@
-// A faint grid of dots, like graph/ledger paper, that gently brightens
-// and grows near the cursor. Purely decorative, sits behind everything,
-// and never intercepts clicks (see #bg-canvas { pointer-events: none } ).
+// A field of ambient twinkling stars that also directly react to the
+// cursor: nearby stars brighten and grow noticeably as you move through
+// them, then ease back. Combines a calm ambient scene with a clearly
+// interactive, direct effect (the earlier whole-page parallax was too
+// subtle to register). Sits behind everything, never intercepts clicks.
 
 (function () {
   const canvas = document.getElementById("bg-canvas");
@@ -11,59 +13,61 @@
     "(prefers-reduced-motion: reduce)"
   ).matches;
 
-  const SPACING = 34;
-  const BASE_RADIUS = 1.4;
-  const MAX_RADIUS = 4.2;
-  const INFLUENCE = 130; // px — how far the cursor's glow reaches
+  const DENSITY = 9000;       // px^2 per star — lower = more stars
+  const BASE_RADIUS = 1.1;
+  const MAX_RADIUS = 4.5;
+  const INFLUENCE = 160;      // px — how far the cursor's glow reaches
 
-  let width, height, points;
+  let width, height, stars;
   let mouse = { x: -9999, y: -9999 };
 
-  function buildGrid() {
+  function buildStars() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
-    points = [];
-    for (let x = SPACING / 2; x < width; x += SPACING) {
-      for (let y = SPACING / 2; y < height; y += SPACING) {
-        points.push({ x, y, r: BASE_RADIUS });
-      }
-    }
+    const count = Math.round((width * height) / DENSITY);
+
+    stars = Array.from({ length: count }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: BASE_RADIUS,
+      twinkleSpeed: 0.5 + Math.random() * 1.3,
+      twinklePhase: Math.random() * Math.PI * 2,
+    }));
   }
 
-  function draw() {
+  function draw(time) {
     ctx.clearRect(0, 0, width, height);
-    for (const p of points) {
-      const dx = p.x - mouse.x;
-      const dy = p.y - mouse.y;
+
+    for (const s of stars) {
+      const dx = s.x - mouse.x;
+      const dy = s.y - mouse.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const targetR = dist < INFLUENCE
         ? BASE_RADIUS + (MAX_RADIUS - BASE_RADIUS) * (1 - dist / INFLUENCE)
         : BASE_RADIUS;
+      s.r += (targetR - s.r) * 0.18;
 
-      // ease toward the target radius each frame for a smooth glow
-      p.r += (targetR - p.r) * 0.15;
-
-      const brightness = (p.r - BASE_RADIUS) / (MAX_RADIUS - BASE_RADIUS);
-      const alpha = 0.10 + brightness * 0.45;
-      const green = brightness > 0.05;
+      const ambientTwinkle = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(time * 0.001 * s.twinkleSpeed + s.twinklePhase));
+      const proximityBoost = Math.max(0, (s.r - BASE_RADIUS) / (MAX_RADIUS - BASE_RADIUS));
+      const alpha = Math.min(1, ambientTwinkle + proximityBoost * 0.8);
 
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = green
-        ? `rgba(47, 107, 52, ${alpha})`
-        : `rgba(74, 90, 67, ${alpha})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = proximityBoost > 0.08
+        ? `rgba(45, 212, 191, ${alpha})`   // near cursor: teal glow
+        : `rgba(238, 242, 246, ${alpha})`; // ambient: soft white
       ctx.fill();
     }
+
     requestAnimationFrame(draw);
   }
 
   function drawStatic() {
-    // Reduced-motion fallback: a plain, non-reactive dot grid, no rAF loop.
     ctx.clearRect(0, 0, width, height);
-    for (const p of points) {
+    for (const s of stars) {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, BASE_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(74, 90, 67, 0.12)";
+      ctx.arc(s.x, s.y, BASE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(238, 242, 246, 0.55)";
       ctx.fill();
     }
   }
@@ -77,11 +81,11 @@
     mouse.y = -9999;
   });
   window.addEventListener("resize", () => {
-    buildGrid();
+    buildStars();
     if (prefersReducedMotion) drawStatic();
   });
 
-  buildGrid();
+  buildStars();
   if (prefersReducedMotion) {
     drawStatic();
   } else {

@@ -34,7 +34,7 @@ def get_matches(request: RecommendationRequest, db: Session = Depends(get_db)):
             .filter(
                 RentData.region_id == region.id,
                 RentData.bedroom_type == request.bedroom_type,
-            )
+                )
             .order_by(RentData.imported_at.desc())
             .first()
         )
@@ -47,6 +47,8 @@ def get_matches(request: RecommendationRequest, db: Session = Depends(get_db)):
             monthly_groceries_estimate=monthly_groceries_estimate,
             monthly_transportation_cost=monthly_transportation_cost,
             monthly_extra_expenses=request.monthly_extra_expenses,
+            current_savings=request.current_savings,
+            savings_goal=request.savings_goal,
         )
 
         matches.append(RecommendationMatch(
@@ -58,6 +60,7 @@ def get_matches(request: RecommendationRequest, db: Session = Depends(get_db)):
             total_monthly_expenses=result.total_monthly_expenses,
             monthly_surplus=result.monthly_surplus,
             is_currently_affordable=result.is_currently_affordable,
+            months_to_goal=result.months_to_goal,
         ))
 
     # Best fit first — highest surplus at the top.

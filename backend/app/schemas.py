@@ -34,6 +34,8 @@ class RecommendationRequest(BaseModel):
     custom_groceries: Optional[float] = None
     transportation_mode: str = "transit"
     custom_transportation_cost: Optional[float] = None
+    current_savings: float = 0.0
+    savings_goal: Optional[float] = None
 
 
 class RecommendationMatch(BaseModel):
@@ -45,6 +47,7 @@ class RecommendationMatch(BaseModel):
     total_monthly_expenses: float
     monthly_surplus: float
     is_currently_affordable: bool
+    months_to_goal: Optional[float] = None
 
 
 class AffordabilityRequest(BaseModel):
@@ -68,11 +71,35 @@ class AffordabilityResponse(BaseModel):
     estimated_groceries: float
     estimated_transportation: float
     transportation_mode: str
+    groceries_is_estimate: bool
+    transportation_is_estimate: bool
     total_monthly_expenses: float
     monthly_surplus: float
     months_to_goal: Optional[float] = None
     is_currently_affordable: bool
     notes: list[str] = []
+
+
+class EstimatePreviewRequest(BaseModel):
+    region_id: int
+    bedroom_type: str = "1 Bedroom"
+    custom_groceries: Optional[float] = None
+    transportation_mode: str = "transit"
+    custom_transportation_cost: Optional[float] = None
+
+
+class EstimatePreviewResponse(BaseModel):
+    region_name: str
+    estimated_rent: float
+    estimated_groceries: float
+    estimated_transportation: float
+    groceries_is_estimate: bool
+    transportation_is_estimate: bool
+
+
+class TransitPlanOut(BaseModel):
+    zone_count: int
+    monthly_pass_cost: float
 
 
 class RegionRentOut(BaseModel):
