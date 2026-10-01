@@ -142,3 +142,11 @@ living can vary a lot from one city to the next. Figuring out what is
 actually affordable usually means digging through several different
 sources and a lot of guesswork. This project pulls that into one place,
 using real public data instead.
+
+## Acknowledgments
+
+Built with the help of Claude (Anthropic), used throughout as a
+collaborative coding partner for the backend, the frontend, and the data
+pipeline. All of the product decisions, the data sourcing choices, and the
+design direction were mine, worked through and refined in conversation
+with Claude rather than figured out alone.
