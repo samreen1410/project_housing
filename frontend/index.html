@@ -10,9 +10,115 @@
     <style>
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-        .section-title {
-            font-size: 1.3rem;
-            margin: 46px 0 8px;
+        /* Home page title: a little larger than on the other pages, and the
+           navigation fades in after it. The title styling itself lives in
+           shared/theme.css. */
+        .masthead h1 { font-size: clamp(2.3rem, 5vw, 3.5rem); }
+        .masthead .site-nav { animation: fadeUp 0.9s 0.4s ease backwards; }
+        @media (prefers-reduced-motion: reduce) {
+            .masthead .site-nav { animation: none; }
+        }
+
+        /* ---------- Section headings ---------- */
+        .section-head { margin-top: 72px; margin-bottom: 22px; }
+        .ticker + .section-head { margin-top: 48px; }
+        .head-row { display: flex; align-items: center; gap: 20px; }
+        .section-head h2 {
+            margin: 0;
+            padding-bottom: 4px;
+            font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            line-height: 1.1;
+            background: linear-gradient(90deg, #ffffff 0%, #cdf8f1 55%, #2dd4bf 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        .head-line {
+            flex: 1;
+            min-width: 24px;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, rgba(45, 212, 191, 0.75), rgba(45, 212, 191, 0));
+            transform-origin: left center;
+        }
+        .section-sub { margin: 10px 0 0; font-size: 1.02rem; color: var(--ink-soft); }
+        .section-head + .photo-reel { margin-top: 0; }
+
+        /* ---------- Contents bar: stays on screen, shows where you are, jumps on click ---------- */
+        html { scroll-behavior: smooth; }
+        /* The card clips instead of hides, so the bar can stay stuck to the top of the screen. */
+        .page-card { overflow: clip; }
+        .section-head { scroll-margin-top: 84px; }
+        .toc-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(22, 35, 58, 0.9);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .toc-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        .toc-bar::-webkit-scrollbar { display: none; }
+        .toc-label { flex-shrink: 0; margin-right: 8px; font-size: 0.78rem; color: var(--ink-soft); }
+        .toc-bar a {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: var(--ink-soft);
+            text-decoration: none;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .toc-bar a:hover { background: rgba(255, 255, 255, 0.07); color: var(--ink); }
+        .toc-bar a.active { background: var(--teal-soft); color: var(--teal); }
+        .toc-progress {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 2px;
+            width: 0;
+            background: linear-gradient(90deg, rgba(45, 212, 191, 0.4), #2dd4bf);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+        }
+        @media (max-width: 760px) {
+            .toc-label { display: none; }
+        }
+
+        /* Headings glide in as they scroll into view (switched on by setupReveal). */
+        .reveal-ready .section-head {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal-ready .section-head .head-line {
+            transform: scaleX(0);
+            transition: transform 1s ease 0.25s;
+        }
+        .reveal-ready .section-head.in-view { opacity: 1; transform: none; }
+        .reveal-ready .section-head.in-view .head-line { transform: scaleX(1); }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-ready .section-head, .reveal-ready .section-head .head-line {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
         }
         .section-intro {
             color: var(--ink-soft);
@@ -247,6 +353,19 @@
         </svg>
     </header>
 
+    <div class="toc-wrap">
+        <nav class="toc-bar" aria-label="On this page">
+            <span class="toc-label">On this page</span>
+            <a href="#greater-vancouver">Greater Vancouver</a>
+            <a href="#housing-situation">The housing situation</a>
+            <a href="#how-built">How this was built</a>
+            <a href="#what-it-does">What this tool does</a>
+            <a href="#about-me">About me</a>
+            <a href="#my-vancouver">Vancouver through my eyes</a>
+        </nav>
+        <div class="toc-progress" id="toc-progress"></div>
+    </div>
+
     <div class="sheet">
 
         <div class="ticker">
@@ -255,7 +374,10 @@
             </div>
         </div>
 
-        <h2 class="section-title">Greater Vancouver</h2>
+        <div class="section-head" id="greater-vancouver">
+            <div class="head-row"><h2>Greater Vancouver</h2><span class="head-line"></span></div>
+            <p class="section-sub">Where the mountains meet the sea</p>
+        </div>
         <p class="section-intro">
             Metro Vancouver sits on Canada's west coast, tucked between the Coast
             Mountains and the Pacific Ocean in British Columbia. It is known for
@@ -276,7 +398,10 @@
             </iframe>
         </div>
 
-        <h2 class="section-title">The housing situation</h2>
+        <div class="section-head" id="housing-situation">
+            <div class="head-row"><h2>The housing situation</h2><span class="head-line"></span></div>
+            <p class="section-sub">What renting actually costs right now</p>
+        </div>
         <p class="section-intro">
             Rent in Metro Vancouver varies a lot depending on which city you
             look at, and the gap between the cheapest and priciest options can
@@ -299,7 +424,10 @@
             </div>
         </div>
 
-        <h2 class="section-title">How this was built</h2>
+        <div class="section-head" id="how-built">
+            <div class="head-row"><h2>How this was built</h2><span class="head-line"></span></div>
+            <p class="section-sub">Where every number comes from</p>
+        </div>
         <p class="section-intro">
             Rather than guess at costs or rely on outdated listings, this tool
             pulls from real public data sources and caches the results. Click
@@ -308,7 +436,10 @@
         </p>
         <div class="flip-grid" id="sources-grid"></div>
 
-        <h2 class="section-title">What this tool does</h2>
+        <div class="section-head" id="what-it-does">
+            <div class="head-row"><h2>What this tool does</h2><span class="head-line"></span></div>
+            <p class="section-sub">Three tools, one set of real numbers</p>
+        </div>
         <p class="section-intro">
             Three tools, all built on that same underlying data. Click a card to
             flip it and see exactly how it works, or use the button on the back
@@ -316,7 +447,10 @@
         </p>
         <div class="flip-grid" id="features-grid"></div>
 
-        <h2 class="section-title">About me</h2>
+        <div class="section-head" id="about-me">
+            <div class="head-row"><h2>About me</h2><span class="head-line"></span></div>
+            <p class="section-sub">Why I built this</p>
+        </div>
         <p class="section-intro">
             I am Samreen, a fourth year Science student at UBC. I have lived in
             Metro Vancouver for about five years now, and I genuinely love it
@@ -331,6 +465,11 @@
             I ran into myself. I built this tool to make those numbers easier to
             see and compare, using real public data instead of guesswork.
         </p>
+
+        <div class="section-head" id="my-vancouver">
+            <div class="head-row"><h2>Vancouver through my eyes</h2><span class="head-line"></span></div>
+            <p class="section-sub">Every photo here is one I took myself. Hover to pause.</p>
+        </div>
 
         <div class="photo-reel" id="photo-reel">
             <div class="photo-reel-track" id="photo-reel-track"></div>
@@ -516,12 +655,75 @@
         track.style.animationDuration = (PHOTOS.length * 5) + "s";
     }
 
+    // Headings glide in as they scroll into view. If anything here fails, the
+    // headings simply stay visible, so it can never hide content.
+    function setupReveal() {
+        if (!("IntersectionObserver" in window)) return;
+        const heads = document.querySelectorAll(".section-head");
+        document.documentElement.classList.add("reveal-ready");
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("in-view");
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.25 });
+        heads.forEach(h => observer.observe(h));
+    }
+
+    // The contents bar highlights the section you are in and draws a thin
+    // progress line as you scroll. Clicking a link jumps there (the links work
+    // even without this code, it only adds the highlighting and the progress).
+    function setupContentsBar() {
+        const links = Array.from(document.querySelectorAll(".toc-bar a"));
+        const targets = links.map(a => document.querySelector(a.getAttribute("href")));
+        const bar = document.querySelector(".toc-bar");
+        const progress = document.getElementById("toc-progress");
+        let lastActive = -2;
+        let ticking = false;
+
+        function update() {
+            ticking = false;
+            const probeLine = 150;
+            let active = -1;
+            targets.forEach((target, i) => {
+                if (target && target.getBoundingClientRect().top <= probeLine) active = i;
+            });
+            const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+            if (atBottom) active = targets.length - 1;
+
+            if (active !== lastActive) {
+                links.forEach((a, i) => a.classList.toggle("active", i === active));
+                if (active >= 0) {
+                    const a = links[active];
+                    bar.scrollTo({ left: a.offsetLeft - bar.clientWidth / 2 + a.clientWidth / 2, behavior: "smooth" });
+                }
+                lastActive = active;
+            }
+
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            progress.style.width = (max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0) + "%";
+        }
+
+        window.addEventListener("scroll", () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(update);
+            }
+        }, { passive: true });
+        window.addEventListener("resize", update);
+        update();
+    }
+
     function init() {
+        try { setupReveal(); } catch (err) { /* headings just stay visible */ }
         loadTicker();
         buildFlipGrid("sources-grid", SOURCES, false);
         buildFlipGrid("features-grid", FEATURES, true);
         loadHousingStats();
         buildPhotoReel();
+        try { setupContentsBar(); } catch (err) { /* the links still work without the highlighting */ }
     }
 
     init();

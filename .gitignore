@@ -1,0 +1,7 @@
+backend/venv/
+__pycache__/
+*.pyc
+backend/affordability.db*
+.idea/
+.DS_Store
+/notes.txt
