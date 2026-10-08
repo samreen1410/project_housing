@@ -7,7 +7,7 @@
 // IMPORTANT: after deploying the backend (for example on Render), replace
 // the placeholder below with its real URL. It looks like
 // "https://your-service-name.onrender.com" with no slash at the end.
-const DEPLOYED_API_BASE = "https://REPLACE-WITH-YOUR-RENDER-URL.onrender.com";
+const DEPLOYED_API_BASE = "https://project-housing.onrender.com";
 
 const IS_LOCAL = ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
 const API_BASE = IS_LOCAL ? "http://127.0.0.1:8000" : DEPLOYED_API_BASE;
