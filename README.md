@@ -5,6 +5,12 @@ Metro Vancouver. It pulls real rent, grocery, and transit data into one
 place so comparing cities, checking what you can afford, or finding a city
 that fits your budget does not depend on outdated listings or guesswork.
 
+**Live site: [samreen1410.github.io/project_housing](https://samreen1410.github.io/project_housing/)**
+
+The backend runs on a free hosting plan that sleeps when nobody is using it,
+so the first visit after a quiet spell can take up to a minute to load the
+data. A small banner on the page explains the wait.
+
 Built as a personal portfolio project by a UBC Science student who has
 lived in Metro Vancouver for about five years and ran into exactly this
 problem firsthand.
