@@ -238,35 +238,68 @@
             margin-top: auto;
         }
 
-        /* ---------- Photo reel (continuous, no box/arrows) ---------- */
+        /* ---------- Photo reel (moves by itself, swipe or arrows to steer) ---------- */
         .photo-reel {
-            overflow: hidden;
+            position: relative;
             border-radius: 14px;
             margin-top: 14px;
         }
+        .photo-reel-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 14px;
+        }
+        .photo-reel-scroll::-webkit-scrollbar { display: none; }
         .photo-reel-track {
             display: flex;
             gap: 12px;
             width: max-content;
-            animation: reelScroll linear infinite;
         }
         .photo-reel-track img {
             height: 260px;
+            min-width: 120px;
             width: auto;
             border-radius: 10px;
             flex-shrink: 0;
             display: block;
+            -webkit-user-drag: none;
+            user-select: none;
         }
-        .photo-reel-track:hover {
-            animation-play-state: paused;
+        .reel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(10, 18, 28, 0.62);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            font-size: 1.7rem;
+            line-height: 1;
+            padding: 0 0 4px;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
-        @keyframes reelScroll {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .photo-reel-track { animation: none; }
-        }
+        .reel-arrow:hover { background: rgba(45, 212, 191, 0.55); }
+        .reel-arrow:active { transform: translateY(-50%) scale(0.92); }
+        .reel-arrow.prev { left: 10px; }
+        .reel-arrow.next { right: 10px; }
+
+        /* The city ticker uses the same moving method as the reel, so it can
+           also be swiped. The old CSS animation is switched off here. */
+        .ticker { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+        .ticker::-webkit-scrollbar { display: none; }
+        .ticker-track { animation: none !important; }
 
         @media (max-width: 760px) {
             .stat-grid, .flip-grid { grid-template-columns: 1fr; }
@@ -472,11 +505,15 @@
 
         <div class="section-head" id="my-vancouver">
             <div class="head-row"><h2>Vancouver through my eyes</h2><span class="head-line"></span></div>
-            <p class="section-sub">Every photo here is one I took myself. Hover to pause.</p>
+            <p class="section-sub">Every photo here is one I took myself. Swipe or use the arrows to move them.</p>
         </div>
 
         <div class="photo-reel" id="photo-reel">
-            <div class="photo-reel-track" id="photo-reel-track"></div>
+            <div class="photo-reel-scroll" id="photo-reel-scroll">
+                <div class="photo-reel-track" id="photo-reel-track"></div>
+            </div>
+            <button class="reel-arrow prev" id="reel-prev" type="button" aria-label="Previous photos">&#8249;</button>
+            <button class="reel-arrow next" id="reel-next" type="button" aria-label="Next photos">&#8250;</button>
         </div>
 
         <footer class="report-foot">
@@ -490,15 +527,83 @@
 <script src="shared/state.js"></script>
 <script src="shared/nav.js"></script>
 <script>
-    async function loadTicker() {
+    // The city names are shown straight away (no waiting on the server, which
+    // may be asleep), then swapped for the live list only if it differs.
+    const FALLBACK_CITIES = ["Vancouver", "Burnaby", "Surrey", "Richmond",
+        "Coquitlam", "New Westminster", "North Vancouver", "West Vancouver"];
+
+    function renderTicker(cities) {
         const track = document.getElementById("ticker-track");
+        const names = cities.map(c => `<span>&#9670; ${c.toUpperCase()}</span>`);
+        track.innerHTML = names.join("") + names.join("");
+    }
+
+    async function loadTicker() {
+        renderTicker(FALLBACK_CITIES);
         try {
             const regions = await fetchRegions();
-            const names = regions.map(r => `<span>&#9670; ${r.name.toUpperCase()}</span>`);
-            track.innerHTML = names.join("") + names.join("");
-        } catch (err) {
-            track.innerHTML = "<span>Backend offline. Start uvicorn to load live city data</span>";
+            const live = regions.map(r => r.name);
+            if (live.length && live.slice().sort().join("|") !== FALLBACK_CITIES.slice().sort().join("|")) {
+                renderTicker(live);
+            }
+        } catch (err) { /* the built in list stays */ }
+    }
+
+    // Moves a scrollable strip by itself while the finger or mouse stays in
+    // charge: touching pauses it, and it eases back into motion a couple of
+    // seconds after the last touch. The strip holds the same set twice, so when
+    // the first copy has fully passed it jumps back by exactly one set, which
+    // is invisible.
+    function autoLoop(scroller, track, pxPerSec) {
+        let pos = 0, lastSet = 0, half = 0, holdUntil = 0;
+        let pointerDown = false, hovering = false, visible = true, last = 0;
+
+        function measure() {
+            const n = track.children.length;
+            half = n >= 2 ? track.children[n / 2].offsetLeft - track.children[0].offsetLeft : 0;
         }
+        function hold(ms) { holdUntil = performance.now() + ms; }
+
+        scroller.addEventListener("pointerdown", () => { pointerDown = true; });
+        ["pointerup", "pointercancel"].forEach(ev =>
+            scroller.addEventListener(ev, () => { pointerDown = false; hold(2500); }));
+        scroller.addEventListener("mouseenter", () => { hovering = true; });
+        scroller.addEventListener("mouseleave", () => { hovering = false; hold(600); });
+        scroller.addEventListener("wheel", () => hold(2500), { passive: true });
+        scroller.addEventListener("touchstart", () => hold(2500), { passive: true });
+        scroller.addEventListener("scroll", () => {
+            // Ignore scrolls this code made itself; anything else is the person.
+            if (Math.abs(scroller.scrollLeft - lastSet) > 2) {
+                hold(2500);
+                if (half > 0 && scroller.scrollLeft >= half) scroller.scrollLeft -= half;
+                else if (half > 0 && scroller.scrollLeft <= 0) scroller.scrollLeft += half;
+                pos = lastSet = scroller.scrollLeft;
+            }
+        }, { passive: true });
+
+        track.addEventListener("load", measure, true);
+        track.addEventListener("error", () => setTimeout(measure, 0), true);
+        window.addEventListener("resize", measure);
+        if ("IntersectionObserver" in window) {
+            new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(scroller);
+        }
+
+        let lastCount = 0;
+        function frame(t) {
+            if (track.children.length !== lastCount) { lastCount = track.children.length; measure(); }
+            const dt = Math.min(0.05, (t - (last || t)) / 1000);
+            last = t;
+            if (half > 0 && visible && !pointerDown && !hovering && t > holdUntil) {
+                pos += pxPerSec * dt;
+                if (pos >= half) pos -= half;
+                scroller.scrollLeft = pos;
+                lastSet = scroller.scrollLeft;
+            }
+            requestAnimationFrame(frame);
+        }
+        measure();
+        requestAnimationFrame(frame);
+        return { measure, hold, getHalf: () => half };
     }
 
     async function loadHousingStats() {
@@ -647,16 +752,28 @@
     });
 
     function buildPhotoReel() {
+        const scroller = document.getElementById("photo-reel-scroll");
         const track = document.getElementById("photo-reel-track");
         const slideHtml = PHOTOS.map(p =>
-            `<img src="${p.src}" alt="${p.caption}" loading="lazy" onerror="this.remove()">`
+            `<img src="${p.src}" alt="${p.caption}" draggable="false" onerror="this.remove()">`
         ).join("");
-        // Duplicated so the loop point is seamless, same technique as the
-        // city ticker above.
+        // Shown twice so the loop point is seamless.
         track.innerHTML = slideHtml + slideHtml;
-        // Scale speed roughly with photo count so it stays a comfortable pace
-        // no matter how many photos end up in the folder.
-        track.style.animationDuration = (PHOTOS.length * 5) + "s";
+
+        const loop = autoLoop(scroller, track, 60);
+
+        function steer(direction) {
+            loop.hold(3500);
+            loop.measure();
+            const half = loop.getHalf();
+            const step = Math.max(260, Math.round(scroller.clientWidth * 0.8));
+            if (direction < 0 && half > 0 && scroller.scrollLeft < step) {
+                scroller.scrollLeft += half;
+            }
+            scroller.scrollBy({ left: direction * step, behavior: "smooth" });
+        }
+        document.getElementById("reel-prev").addEventListener("click", () => steer(-1));
+        document.getElementById("reel-next").addEventListener("click", () => steer(1));
     }
 
     // Headings glide in as they scroll into view. If anything here fails, the
@@ -723,6 +840,7 @@
     function init() {
         try { setupReveal(); } catch (err) { /* headings just stay visible */ }
         loadTicker();
+        autoLoop(document.querySelector(".ticker"), document.getElementById("ticker-track"), 45);
         buildFlipGrid("sources-grid", SOURCES, false);
         buildFlipGrid("features-grid", FEATURES, true);
         loadHousingStats();
